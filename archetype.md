@@ -1,6 +1,7 @@
 # Spring Boot Application Archetype Guide
 
 ## Overview
+
 This is a Spring Boot 3.5.5 application archetype with Java 21, PostgreSQL, JPA, Flyway migrations, and Lombok. It follows a clean layered architecture pattern for building REST APIs.
 
 ## Project Structure
@@ -11,30 +12,32 @@ src/
 │   ├── java/com/example/demo/
 │   │   ├── DemoApplication.java          # Main Spring Boot application class
 │   │   ├── controller/                   # REST Controllers (API endpoints)
-│   │   ├── dto/                         # Data Transfer Objects (Request/Response objects)
-│   │   ├── entity/                      # JPA Entities (Database models)
-│   │   ├── enums/                       # Enum definitions
-│   │   ├── repository/                  # Data Access Layer (JPA Repositories)
-│   │   └── service/                     # Business Logic Layer
+│   │   ├── dto/                          # Data Transfer Objects (Request/Response objects)
+│   │   ├── entity/                       # JPA Entities (Database models)
+│   │   ├── enums/                        # Enum definitions
+│   │   ├── repository/                   # Data Access Layer (JPA Repositories)
+│   │   └── service/                      # Business Logic Layer
 │   └── resources/
 │       ├── application.properties       # Application configuration
-│       ├── db/migration/               # Flyway database migration scripts
-│       ├── static/                     # Static web resources
-│       └── templates/                  # Template files
-└── test/                               # Test classes
+│       ├── db/migration/                # Flyway database migration scripts
+│       ├── static/                      # Static web resources
+│       └── templates/                   # Template files
+└── test/                                # Test classes
 ```
 
 ## Architecture Layers
 
 ### 1. Controller Layer (`/controller`)
+
 - **Purpose**: Handle HTTP requests and responses
-- **Responsibilities**: 
+- **Responsibilities**:
   - Define REST endpoints
   - Validate request data
   - Call service layer methods
   - Return appropriate HTTP responses
 
 **Example Structure:**
+
 ```java
 @RestController
 @RequestMapping("/api/users")
@@ -77,8 +80,10 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 }
+```
 
-### 2. DTO Layer (`/dto`) 
+### 2. DTO Layer (`/dto`)
+
 - **Purpose**: Data Transfer Objects for API communication
 - **Responsibilities**:
   - Request DTOs for incoming data
@@ -86,6 +91,7 @@ public class UserController {
   - Data validation annotations
 
 **Example Structure:**
+
 ```java
 // Request DTO
 @Data
@@ -125,8 +131,10 @@ public class UserResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+```
 
 ### 3. Service Layer (`/service`)
+
 - **Purpose**: Business logic and orchestration
 - **Responsibilities**:
   - Implement business rules
@@ -135,6 +143,7 @@ public class UserResponse {
   - Data transformation
 
 **Example Structure:**
+
 ```java
 @Service
 @RequiredArgsConstructor
@@ -209,8 +218,10 @@ public class UserService {
         return response;
     }
 }
+```
 
 ### 4. Repository Layer (`/repository`)
+
 - **Purpose**: Data access abstraction
 - **Responsibilities**:
   - Database operations
@@ -218,6 +229,7 @@ public class UserService {
   - JPA repository interfaces
 
 **Example Structure:**
+
 ```java
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -237,8 +249,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     long countByStatus(UserStatus status);
 }
+```
 
 ### 5. Entity Layer (`/entity`)
+
 - **Purpose**: Database model representation
 - **Responsibilities**:
   - JPA entity definitions
@@ -246,6 +260,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
   - Relationships between entities
 
 **Example Structure:**
+
 ```java
 @Entity
 @Table(name = "users")
@@ -293,8 +308,10 @@ public class User {
         return firstName + " " + lastName;
     }
 }
+```
 
 ### 6. Enums (`/enums`)
+
 - **Purpose**: Define constant values and types
 - **Responsibilities**:
   - Status enums
@@ -302,6 +319,7 @@ public class User {
   - Configuration constants
 
 **Example Structure:**
+
 ```java
 public enum UserStatus {
     
@@ -332,44 +350,20 @@ public enum UserStatus {
 
 ## Getting Started
 
-### Prerequisites
+### Stack Requirements
+
 - Java 21 or higher
 - Maven 3.6+
 - PostgreSQL database
-
-### Database Setup
-1. Create a PostgreSQL database
-2. Update `application.properties` with your database configuration:
-
-```properties
-spring.application.name=demo
-
-# Database Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_database
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-
-# JPA Configuration
-spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
-
-# Flyway Configuration
-spring.flyway.locations=classpath:db/migration
-spring.flyway.baseline-on-migrate=true
-```
-
-### Running the Application
-```bash
-./mvnw spring-boot:run
-```
 
 ## Development Guidelines
 
 ### Creating a New Feature
 
 #### 1. Entity First (`/entity`)
+
 Create your database model:
+
 ```java
 @Entity
 @Table(name = "users")
@@ -390,9 +384,11 @@ public class User {
 ```
 
 #### 2. Database Migration (`/resources/db/migration`)
+
 Create a Flyway migration script:
 
 **Example Structure:**
+
 ```sql
 -- V1__Create_users_table.sql
 CREATE TABLE users (
@@ -405,24 +401,12 @@ CREATE TABLE users (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
--- Create indexes for better query performance
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_status ON users(status);
-CREATE INDEX idx_users_created_at ON users(created_at);
-
--- Add constraint to ensure status is valid
-ALTER TABLE users ADD CONSTRAINT chk_users_status 
-    CHECK (status IN ('ACTIVE', 'SUSPENDED', 'INACTIVE', 'PENDING'));
-
--- Add comments for documentation
-COMMENT ON TABLE users IS 'Application users table';
-COMMENT ON COLUMN users.email IS 'User email address - must be unique';
-COMMENT ON COLUMN users.status IS 'User account status';
 ```
 
 #### 3. Repository (`/repository`)
+
 Define data access interface:
+
 ```java
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -431,7 +415,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ```
 
 #### 4. DTOs (`/dto`)
+
 Create request and response objects:
+
 ```java
 // Request DTO
 @Data
@@ -454,7 +440,9 @@ public class UserResponse {
 ```
 
 #### 5. Service (`/service`)
-Implement business logic:
+
+Implement business logic following your business rules:
+
 ```java
 @Service
 @RequiredArgsConstructor
@@ -474,7 +462,9 @@ public class UserService {
 ```
 
 #### 6. Controller (`/controller`)
+
 Create REST endpoints:
+
 ```java
 @RestController
 @RequestMapping("/api/users")
@@ -491,6 +481,7 @@ public class UserController {
 ```
 
 ### Migration File Naming Convention
+
 - Format: `V{version}__{description}.sql`
 - Examples:
   - `V1__Create_users_table.sql`
@@ -502,15 +493,15 @@ public class UserController {
 1. **Separation of Concerns**: Each layer should have a single responsibility
 2. **DTO Usage**: Never expose entities directly in controllers
 3. **Validation**: Use Bean Validation annotations in DTOs
-4. **Error Handling**: Implement proper exception handling
-5. **Testing**: Write tests for each layer
-6. **Database Migrations**: Always use Flyway for schema changes
+4. **Error Handling**: Implement proper exception handling if needed
+5. **Database Migrations**: Always use Flyway for schema changes
 
 ## Code Generation Patterns for AI Agents
 
 ### Required Imports by Layer
 
 **Entity Layer:**
+
 ```java
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -522,6 +513,7 @@ import java.time.LocalDateTime;
 ```
 
 **Repository Layer:**
+
 ```java
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -534,6 +526,7 @@ import java.util.Optional;
 ```
 
 **Service Layer:**
+
 ```java
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -545,6 +538,7 @@ import java.util.Optional;
 ```
 
 **Controller Layer:**
+
 ```java
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -557,6 +551,7 @@ import org.springframework.web.bind.annotation.*;
 ```
 
 **DTO Layer:**
+
 ```java
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -598,14 +593,3 @@ import java.time.LocalDateTime;
 - **Lombok**: Reduce boilerplate code
 - **Spring Boot Actuator**: Application monitoring
 - **Spring Boot DevTools**: Development utilities
-
-## Next Steps
-
-1. Configure your database connection in `application.properties`
-2. Create your first entity and migration
-3. Build the repository, service, and controller layers
-4. Add proper error handling and validation
-5. Write comprehensive tests
-6. Configure logging and monitoring
-
-This archetype provides a solid foundation for building scalable Spring Boot applications with PostgreSQL.
