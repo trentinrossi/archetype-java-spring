@@ -416,6 +416,30 @@ public enum UserStatus {
 }
 ```
 
+#### 7. Security Configuration (`/config`)
+
+- **Purpose**: Application security settings
+- **Responsibilities**:
+  - Define security policies
+  - Configure authentication and authorization
+**Example Structure:**
+
+```java
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(auth -> auth
+                .anyRequest().permitAll()
+            );
+            
+        return http.build();
+    }
+}
+```
+
 ## Getting Started
 
 ### Stack Requirements
