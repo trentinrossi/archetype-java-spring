@@ -39,34 +39,60 @@ src/
 **Example Structure:**
 
 ```java
-@RestController
-@RequestMapping("/api/users")
-@RequiredArgsConstructor
 @Slf4j
+@RestController
+@RequiredArgsConstructor
+@Tag(name = "User Management", description = "APIs for managing users")
+@RequestMapping("/api/users")
 public class UserController {
     
     private final UserService userService;
     
+    @Operation(summary = "Get all users", description = "Retrieve a paginated list of all users")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successful retrieval of users"),
+        @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping
     public ResponseEntity<Page<UserResponse>> getAllUsers(
             @PageableDefault(size = 20) Pageable pageable) {
         Page<UserResponse> users = userService.getAllUsers(pageable);
         return ResponseEntity.ok(users);
     }
-    
+
+    @Operation(summary = "Get user by ID", description = "Retrieve a user by their ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successful retrieval of user"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
+    @Operation(summary = "Create a new user", description = "Create a new user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserRequest request) {
         UserResponse response = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
+    @Operation(summary = "Update an existing user", description = "Update user details by ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, 
                                                   @RequestBody UpdateUserRequest request) {
@@ -74,6 +100,12 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
     
+    @Operation(summary = "Delete a user", description = "Delete a user by ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "User deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
@@ -98,9 +130,16 @@ public class UserController {
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateUserRequest {
+    @Schema(description = "First name of the user", example = "John", required = true)
     private String firstName;
+
+    @Schema(description = "Last name of the user", example = "Doe", required = true)
     private String lastName;
+
+    @Schema(description = "Email address of the user", example = "john.doe@example.com", required = true)
     private String email;
+
+    @Schema(description = "Phone number of the user", example = "+1234567890", required = false)
     private String phoneNumber;
 }
 
@@ -109,9 +148,19 @@ public class CreateUserRequest {
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateUserRequest {
+    @Schema(description = "First name of the user", example = "John", required = false)
     private String firstName;
+
+    @Schema(description = "Last name of the user", example = "Doe", required = false)
     private String lastName;
+
+    @Schema(description = "Email address of the user", example = "john.doe@example.com", required = false)
+    private String email;
+
+    @Schema(description = "Phone number of the user", example = "+1234567890", required = false)
     private String phoneNumber;
+
+    @Schema(description = "Status of the user", example = "ACTIVE", required = false)
     private UserStatus status;
 }
 
@@ -120,15 +169,34 @@ public class UpdateUserRequest {
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
+    @Schema(description = "Unique identifier of the user", example = "1", required = true)
     private Long id;
+
+    @Schema(description = "First name of the user", example = "John", required = true)
     private String firstName;
+
+    @Schema(description = "Last name of the user", example = "Doe", required = true)
     private String lastName;
+
+    @Schema(description = "Full name of the user", example = "John Doe", required = true)
     private String fullName;
+
+    @Schema(description = "Email address of the user", example = "john.doe@example.com", required = true)
     private String email;
+
+    @Schema(description = "Phone number of the user", example = "+1234567890", required = false)
     private String phoneNumber;
+
+    @Schema(description = "Status of the user", example = "ACTIVE", required = false)
     private UserStatus status;
+
+    @Schema(description = "Display name of the user status", example = "Active", required = false)
     private String statusDisplayName;
+
+    @Schema(description = "Timestamp when the user was created", example = "2023-10-01T12:00:00", required = true)
     private LocalDateTime createdAt;
+
+    @Schema(description = "Timestamp when the user was last updated", example = "2023-10-01T12:00:00", required = true)
     private LocalDateTime updatedAt;
 }
 ```
@@ -423,18 +491,23 @@ Create request and response objects:
 @Data
 public class CreateUserRequest {
     @NotBlank
+    @Schema(description = "Name of the user", example = "John Doe", required = true)
     private String name;
     
     @Email
     @NotBlank
+    @Schema(description = "Email of the user", example = "john.doe@example.com", required = true)
     private String email;
 }
 
 // Response DTO
 @Data
 public class UserResponse {
+    @Schema(description = "ID of the user", example = "1", required = true)
     private Long id;
+    @Schema(description = "Name of the user", example = "John Doe", required = true)
     private String name;
+    @Schema(description = "Email of the user", example = "john.doe@example.com", required = true)
     private String email;
 }
 ```
@@ -467,11 +540,19 @@ Create REST endpoints:
 
 ```java
 @RestController
-@RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Slf4j
+@Tag(name = "User Management", description = "APIs for managing users")
+@RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
     
+    @Operation(summary = "Create a new user", description = "Create a new user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
         UserResponse response = userService.createUser(request);
