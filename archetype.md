@@ -6,7 +6,7 @@ This is a Spring Boot 3.5.5 application archetype with Java 21, PostgreSQL, JPA,
 
 ## Project Structure
 
-```
+```text
 src/
 ├── main/
 │   ├── java/com/example/demo/
