@@ -442,7 +442,7 @@ Define the JPA entity with necessary fields and annotations, following naming co
 
 #### 2. DTOs (`/dto`)
 
-Define Request and Response DTOs for the entity, ensuring proper validation annotations and documentation.
+Define Request and Response DTOs for the entity, ensuring proper validation annotations and documentation. Also make sure to create each DTO class into separate class files, do not combine multiple DTOs into a single file.
 
 #### 3. Repository (`/repository`)
 
