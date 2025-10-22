@@ -125,8 +125,9 @@ public class UserController {
 
 **Example Structure:**
 
+> Request DTO file: CreateUserRequestDto.java
+
 ```java
-// Request DTO file: CreateUserRequestDto.java
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -145,8 +146,9 @@ public class CreateUserRequestDto {
 }
 ```
 
+> Update DTO file: UpdateUserRequestDto.java
+
 ```java
-// Update DTO file: UpdateUserRequestDto.java
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -168,8 +170,9 @@ public class UpdateUserRequestDto {
 }
 ```
 
+> Response DTO file: UserResponseDto.java
+
 ```java
-// Response DTO file: UserResponseDto.java
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -421,36 +424,12 @@ public enum UserStatus {
 }
 ```
 
-#### 7. Security Configuration (`/config`)
-
-- **Purpose**: Application security settings
-- **Responsibilities**:
-  - Define security policies
-  - Configure authentication and authorization
-**Example Structure:**
-
-```java
-@Configuration
-public class SecurityConfig {
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
-            );
-            
-        return http.build();
-    }
-}
-```
-
 ## Getting Started
 
 ### Stack Requirements
 
-- Java 21 or higher
-- Maven 3.6+
+- Java 21
+- Maven 3.6
 - PostgreSQL database
 
 ## Development Guidelines
@@ -459,28 +438,25 @@ public class SecurityConfig {
 
 #### 1. Entity First (`/entity`)
 
-Create your database model:
+Define the JPA entity with necessary fields and annotations, following naming conventions and examples provided above.
 
-```java
-@Entity
-@Table(name = "users")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String name;
-    
-    @Column(unique = true, nullable = false)
-    private String email;
-}
-```
+#### 2. DTOs (`/dto`)
 
-#### 2. Database Migration (`/resources/db/migration`)
+Define Request and Response DTOs for the entity, ensuring proper validation annotations and documentation.
+
+#### 3. Repository (`/repository`)
+
+Create a JPA repository interface for the entity, including custom query methods as needed.
+
+#### 4. Service (`/service`)
+
+Implement the business logic for the entity, using the repository for data access.
+
+#### 5. Controller (`/controller`)
+
+Define the REST API endpoints for the entity, using the service for business logic.
+
+#### 6. Database Migration (`/resources/db/migration`)
 
 Create a Flyway migration script:
 
@@ -500,99 +476,7 @@ CREATE TABLE users (
 );
 ```
 
-#### 3. Repository (`/repository`)
-
-Define data access interface:
-
-```java
-@Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByEmail(String email);
-}
-```
-
-#### 4. DTOs (`/dto`)
-
-Create request and response objects:
-
-```java
-// Request DTO file: CreateUserRequestDto.java
-@Data
-public class CreateUserRequestDto {
-    @NotBlank
-    @Schema(description = "Name of the user", example = "John Doe", required = true)
-    private String name;
-    
-    @Email
-    @NotBlank
-    @Schema(description = "Email of the user", example = "john.doe@example.com", required = true)
-    private String email;
-}
-```
-
-```java
-// Response DTO file: UserResponseDto.java
-@Data
-public class UserResponseDto {
-    @Schema(description = "ID of the user", example = "1", required = true)
-    private Long id;
-    @Schema(description = "Name of the user", example = "John Doe", required = true)
-    private String name;
-    @Schema(description = "Email of the user", example = "john.doe@example.com", required = true)
-    private String email;
-}
-```
-
-#### 5. Service (`/service`)
-
-Implement business logic following your business rules:
-
-```java
-@Service
-@RequiredArgsConstructor
-public class UserService {
-    private final UserRepository userRepository;
-    
-    public UserResponse createUser(CreateUserRequest request) {
-        User user = new User();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        
-        User savedUser = userRepository.save(user);
-        
-        return new UserResponse(savedUser.getId(), savedUser.getName(), savedUser.getEmail());
-    }
-}
-```
-
-#### 6. Controller (`/controller`)
-
-Create REST endpoints:
-
-```java
-@RestController
-@RequiredArgsConstructor
-@Slf4j
-@Tag(name = "User Management", description = "APIs for managing users")
-@RequestMapping("/api/users")
-public class UserController {
-    private final UserService userService;
-    
-    @Operation(summary = "Create a new user", description = "Create a new user")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "User created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request data"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
-    @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
-        UserResponse response = userService.createUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-}
-```
-
-### Migration File Naming Convention
+Migration File Naming Convention
 
 - Format: `V{version}__{description}.sql`
 - Examples:
@@ -608,7 +492,7 @@ public class UserController {
 4. **Error Handling**: Implement proper exception handling if needed
 5. **Database Migrations**: Always use Flyway for schema changes
 
-## Code Generation Patterns for AI Agents
+## Code Generation Patterns
 
 ### Required Imports by Layer
 
