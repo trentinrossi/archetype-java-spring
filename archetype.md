@@ -121,15 +121,16 @@ public class UserController {
   - Request DTOs for incoming data
   - Response DTOs for outgoing data
   - Data validation annotations
+  - Create each DTO class into separate class files
 
 **Example Structure:**
 
 ```java
-// Request DTO
+// Request DTO file: CreateUserRequestDto.java
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateUserRequest {
+public class CreateUserRequestDto {
     @Schema(description = "First name of the user", example = "John", required = true)
     private String firstName;
 
@@ -142,12 +143,14 @@ public class CreateUserRequest {
     @Schema(description = "Phone number of the user", example = "+1234567890", required = false)
     private String phoneNumber;
 }
+```
 
-// Update DTO
+```java
+// Update DTO file: UpdateUserRequestDto.java
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateUserRequest {
+public class UpdateUserRequestDto {
     @Schema(description = "First name of the user", example = "John", required = false)
     private String firstName;
 
@@ -163,12 +166,14 @@ public class UpdateUserRequest {
     @Schema(description = "Status of the user", example = "ACTIVE", required = false)
     private UserStatus status;
 }
+```
 
-// Response DTO
+```java
+// Response DTO file: UserResponseDto.java
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
+public class UserResponseDto {
     @Schema(description = "Unique identifier of the user", example = "1", required = true)
     private Long id;
 
@@ -511,9 +516,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 Create request and response objects:
 
 ```java
-// Request DTO
+// Request DTO file: CreateUserRequestDto.java
 @Data
-public class CreateUserRequest {
+public class CreateUserRequestDto {
     @NotBlank
     @Schema(description = "Name of the user", example = "John Doe", required = true)
     private String name;
@@ -523,10 +528,12 @@ public class CreateUserRequest {
     @Schema(description = "Email of the user", example = "john.doe@example.com", required = true)
     private String email;
 }
+```
 
-// Response DTO
+```java
+// Response DTO file: UserResponseDto.java
 @Data
-public class UserResponse {
+public class UserResponseDto {
     @Schema(description = "ID of the user", example = "1", required = true)
     private Long id;
     @Schema(description = "Name of the user", example = "John Doe", required = true)
@@ -669,8 +676,8 @@ import java.time.LocalDateTime;
 - **Entities**: PascalCase (e.g., `User`, `Order`, `Product`)
 - **Tables**: snake_case (e.g., `users`, `orders`, `products`)
 - **Columns**: snake_case (e.g., `first_name`, `created_at`)
-- **Request DTOs**: `Create{Entity}Request`, `Update{Entity}Request`
-- **Response DTOs**: `{Entity}Response`
+- **Request DTOs**: `Create{Entity}RequestDto`, `Update{Entity}RequestDto`
+- **Response DTOs**: `{Entity}ResponseDto`
 - **Controllers**: `{Entity}Controller`
 - **Services**: `{Entity}Service`
 - **Repositories**: `{Entity}Repository`
