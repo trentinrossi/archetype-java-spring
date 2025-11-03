@@ -1,0 +1,14 @@
+package com.example.demo.repository;
+
+import com.example.demo.entity.CardCrossReference;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface CardCrossReferenceRepository extends JpaRepository<CardCrossReference, String> {
+    
+    List<CardCrossReference> findByCustomerId(String customerId);
+    
+    List<CardCrossReference> findByAccountId(String accountId);
+}
