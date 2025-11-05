@@ -526,3 +526,9 @@ import java.time.LocalDateTime;
 - **Lombok**: Reduce boilerplate code
 - **Spring Boot Actuator**: Application monitoring
 - **Spring Boot DevTools**: Development utilities
+
+## DO NOT
+
+- **Change the project structure**: Stick to the defined architecture
+- **Mix layers**: Keep concerns separated
+- **Change the pom.xml**: Use the provided dependencies only
