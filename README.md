@@ -1,301 +1,253 @@
-# Spring Boot Application Archetype
+# Card Services Account and Payment Processing System
 
-A comprehensive Spring Boot 3.5.5 archetype with Java 21, PostgreSQL, JPA, Flyway migrations, and clean architecture patterns.
+## Overview
 
-## 📋 Table of Contents
+This is a modernized implementation of a Card Services Account and Payment Processing system, originally based on COBOL mainframe programs. The system has been completely rewritten using Spring Boot and follows modern software development best practices while preserving all original business rules and validation logic.
 
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Architecture Guide](#architecture-guide)
-- [Development Guidelines](#development-guidelines)
-- [API Examples](#api-examples)
-- [Database Migrations](#database-migrations)
-- [Configuration](#configuration)
-- [Best Practices](#best-practices)
-- [Contributing](#contributing)
+## Original COBOL Programs Modernized
 
-## 🚀 Overview
+This implementation modernizes the following COBOL programs:
 
-This archetype provides a ready-to-use Spring Boot application structure that follows industry best practices and clean architecture principles. It's designed to help developers quickly set up new projects with a solid foundation.
+1. **COACTUPC** - Account Update Processing Program
+2. **COACTVWC** - Account View Business Logic Program
+3. **COBIL00C** - Bill Payment Processing Program
+4. **COCRDLIC** - Credit Card List Management Program
+5. **COCRDSLC** - Credit Card Detail View Program
+6. **COCRDUPC** - Credit Card Update Program
 
-## ✨ Features
+## Technology Stack
 
-- **Spring Boot 3.5.5** with Java 21
-- **PostgreSQL** database with JPA/Hibernate
-- **Flyway** database migrations
-- **Lombok** for reducing boilerplate code
-- **Spring Boot Actuator** for monitoring
-- **Layered Architecture** (Controller → Service → Repository → Entity)
-- **DTO Pattern** for API contracts
-- **Comprehensive Examples** for each layer
-- **Production-Ready Configuration**
+- **Java 17+**
+- **Spring Boot 3.x**
+- **Spring Data JPA**
+- **Hibernate**
+- **Jakarta Bean Validation**
+- **Lombok**
+- **Flyway** (for database migrations)
+- **H2/PostgreSQL/MySQL** (database)
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
 ├── main/
 │   ├── java/com/example/demo/
-│   │   ├── DemoApplication.java          # Main application class
-│   │   ├── controller/                   # REST Controllers
-│   │   │   └── UserController.java       # Example controller
-│   │   ├── dto/                         # Data Transfer Objects
-│   │   │   ├── CreateUserRequest.java    # Request DTO
-│   │   │   ├── UpdateUserRequest.java    # Update DTO
-│   │   │   └── UserResponse.java         # Response DTO
-│   │   ├── entity/                      # JPA Entities
-│   │   │   ├── User.java                # Example entity
-│   │   │   └── Order.java               # Related entity example
-│   │   ├── enums/                       # Enum definitions
-│   │   │   ├── UserStatus.java          # User status enum
-│   │   │   └── OrderStatus.java         # Order status enum
-│   │   ├── repository/                  # Data Access Layer
-│   │   │   └── UserRepository.java      # Example repository
-│   │   └── service/                     # Business Logic Layer
-│   │       └── UserService.java        # Example service
+│   │   ├── controller/          # REST API Controllers
+│   │   │   ├── AccountController.java
+│   │   │   ├── CustomerController.java
+│   │   │   ├── CardController.java
+│   │   │   └── TransactionController.java
+│   │   ├── service/             # Business Logic Services
+│   │   │   ├── AccountService.java
+│   │   │   ├── CustomerService.java
+│   │   │   ├── CardService.java
+│   │   │   └── TransactionService.java
+│   │   ├── repository/          # Data Access Layer
+│   │   │   ├── AccountRepository.java
+│   │   │   ├── CustomerRepository.java
+│   │   │   ├── CardRepository.java
+│   │   │   ├── TransactionRepository.java
+│   │   │   └── CardCrossReferenceRepository.java
+│   │   ├── entity/              # JPA Entities
+│   │   │   ├── Account.java
+│   │   │   ├── Customer.java
+│   │   │   ├── Card.java
+│   │   │   ├── Transaction.java
+│   │   │   └── CardCrossReference.java
+│   │   ├── dto/                 # Data Transfer Objects
+│   │   │   ├── AccountDTO.java
+│   │   │   ├── AccountCreateDTO.java
+│   │   │   ├── AccountUpdateDTO.java
+│   │   │   ├── CustomerDTO.java
+│   │   │   ├── CustomerCreateDTO.java
+│   │   │   ├── CustomerUpdateDTO.java
+│   │   │   ├── CardDTO.java
+│   │   │   ├── CardCreateDTO.java
+│   │   │   ├── CardUpdateDTO.java
+│   │   │   ├── CardListDTO.java
+│   │   │   ├── TransactionDTO.java
+│   │   │   └── BillPaymentDTO.java
+│   │   └── exception/           # Exception Handling
+│   │       └── GlobalExceptionHandler.java
 │   └── resources/
-│       ├── application.properties       # Application configuration
-│       └── db/migration/               # Flyway migrations
-│           ├── V1__Create_users_table.sql
-│           ├── V2__Add_user_search_indexes.sql
-│           └── V3__Create_orders_table.sql
-└── test/                               # Test classes
+│       ├── db/migration/        # Flyway Migration Scripts
+│       │   └── V1__create_card_services_tables.sql
+│       └── application.properties
 ```
 
-## 🏁 Getting Started
+## Database Schema
 
-### Quick Start
-1. **Clone or use this archetype**
-2. **Configure your database** in `application.properties`
-3. **Run the application**: `./mvnw spring-boot:run`
-4. **Test the API**: `curl http://localhost:8080/api/users`
+The system uses the following main tables:
 
-For detailed setup instructions, see [QUICKSTART.md](QUICKSTART.md).
+- **accounts** - Account master data
+- **customers** - Customer information
+- **cards** - Credit card information
+- **transactions** - Transaction records
+- **card_cross_references** - Relationships between accounts, cards, and customers
 
-## 🏗️ Architecture Guide
+## Key Features
 
-This application follows a **layered architecture** pattern:
+### Account Management
+- Create, read, update, and delete accounts
+- Comprehensive validation for monetary amounts, dates, and status codes
+- Automatic calculation of available credit
+- Support for account grouping
 
-### 1. **Controller Layer** (`/controller`)
-- Handles HTTP requests and responses
-- Validates input data
-- Maps DTOs to/from service layer
-- Returns appropriate HTTP status codes
+### Customer Management
+- Full customer lifecycle management
+- Validation for SSN, phone numbers, addresses
+- FICO credit score tracking (300-850 range)
+- Support for primary and secondary cardholders
 
-### 2. **Service Layer** (`/service`)
-- Contains business logic
-- Orchestrates operations between repositories
-- Handles transactions
-- Performs data transformations
+### Card Management
+- Card creation and updates
+- Paginated card listing with filtering
+- Card expiration tracking
+- Active/inactive status management
+- Embossed name validation (alphabets and spaces only)
 
-### 3. **Repository Layer** (`/repository`)
-- Data access abstraction
-- Database operations through JPA
-- Custom queries when needed
+### Payment Processing
+- Full bill payment processing
+- Automatic transaction ID generation
+- Balance updates with transaction recording
+- Transaction history tracking
 
-### 4. **Entity Layer** (`/entity`)
-- JPA entity definitions
-- Database table mappings
-- Relationships between entities
+## Business Rules Preserved
 
-### 5. **DTO Layer** (`/dto`)
-- API contracts (Request/Response objects)
-- Input validation
-- Data transfer between layers
+All original COBOL business rules have been preserved, including:
 
-### 6. **Enums** (`/enums`)
-- Type-safe constants
-- Business domain values
-- Status definitions
+1. **Account Validation**:
+   - Account ID must be 11 digits
+   - Credit limits must be positive
+   - Dates must be valid and logical
+   - Status must be Y or N
 
-For detailed architecture information, see [ARCHETYPE.md](ARCHETYPE.md).
+2. **Customer Validation**:
+   - SSN must follow SSA rules (no 000, 666, or 900-999 in first 3 digits)
+   - Phone numbers must be in (XXX)XXX-XXXX format
+   - State and ZIP code cross-validation
+   - FICO score range validation (300-850)
+   - Names can only contain alphabets and spaces
 
-## 🛠️ Development Guidelines
+3. **Card Validation**:
+   - Card number must be 16 digits
+   - CVV must be 3 digits
+   - Expiration date must be in the future
+   - Embossed name alphabetic validation
 
-### Creating a New Feature
+4. **Payment Processing**:
+   - Full balance payment only
+   - Transaction ID sequencing
+   - Automatic balance zeroing
+   - Transaction type and category coding
 
-Follow this order when implementing new features:
+## API Documentation
 
-1. **Entity** → Define your data model
-2. **Migration** → Create database schema
-3. **Repository** → Data access interface
-4. **DTOs** → API contracts
-5. **Service** → Business logic
-6. **Controller** → REST endpoints
-7. **Tests** → Comprehensive testing
+Complete API documentation is available in `openapi-summary.md`.
 
-### Example Implementation
+### Quick Start Examples
 
-```java
-// 1. Entity
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String name;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
-}
-
-// 2. Repository
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
-}
-
-// 3. Service
-@Service
-@RequiredArgsConstructor
-public class ProductService {
-    private final ProductRepository productRepository;
-    
-    public ProductResponse createProduct(CreateProductRequest request) {
-        // Business logic here
-    }
-}
-
-// 4. Controller
-@RestController
-@RequestMapping("/api/products")
-public class ProductController {
-    private final ProductService productService;
-    
-    @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody CreateProductRequest request) {
-        // Controller logic here
-    }
-}
-```
-
-## 📝 API Examples
-
-### User Management APIs
-
+#### Create an Account
 ```bash
-# Create User
-POST /api/users
+POST /api/accounts
+Content-Type: application/json
+
 {
-  "firstName": "John",
-  "lastName": "Doe", 
-  "email": "john.doe@example.com",
-  "phoneNumber": "555-1234"
+  "accountId": "12345678901",
+  "activeStatus": "Y",
+  "creditLimit": 5000.00,
+  "cashCreditLimit": 1000.00,
+  "openDate": "2024-01-01",
+  "expirationDate": "2029-01-01"
 }
-
-# Get All Users (with pagination)
-GET /api/users?page=0&size=10&sort=createdAt,desc
-
-# Get User by ID
-GET /api/users/1
-
-# Update User
-PUT /api/users/1
-{
-  "firstName": "Jane",
-  "phoneNumber": "555-5678"
-}
-
-# Delete User
-DELETE /api/users/1
-
-# Search Users
-GET /api/users/search?q=john
-
-# Get Recent Users
-GET /api/users/recent
 ```
 
-## 🗃️ Database Migrations
+#### Process Bill Payment
+```bash
+POST /api/transactions/bill-payment
+Content-Type: application/json
 
-Flyway migrations follow this naming convention:
-- `V{version}__{description}.sql`
-- Example: `V1__Create_users_table.sql`
-
-### Migration Examples
-
-```sql
--- V1__Create_users_table.sql
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+{
+  "accountId": "12345678901",
+  "confirmPayment": "Y"
+}
 ```
 
-## ⚙️ Configuration
+#### Get Cards List (Paginated)
+```bash
+GET /api/cards/list?accountId=12345678901&page=0&size=7
+```
 
-### Database Configuration
+## Running the Application
+
+### Prerequisites
+- Java 17 or higher
+- Maven 3.6+
+- Database (H2 for development, PostgreSQL/MySQL for production)
+
+### Build
+```bash
+mvn clean install
+```
+
+### Run
+```bash
+mvn spring-boot:run
+```
+
+The application will start on `http://localhost:8080`
+
+## Configuration
+
+Edit `src/main/resources/application.properties`:
+
 ```properties
-# PostgreSQL Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_database
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+# Database Configuration
+spring.datasource.url=jdbc:h2:mem:cardservices
+spring.datasource.username=sa
+spring.datasource.password=
 
 # JPA Configuration
 spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.show-sql=false
+spring.jpa.show-sql=true
 
 # Flyway Configuration
-spring.flyway.locations=classpath:db/migration
-spring.flyway.baseline-on-migrate=true
+spring.flyway.enabled=true
 ```
 
-### Development vs Production
-- **Development**: Use `spring.jpa.show-sql=true` for SQL logging
-- **Production**: Set `spring.jpa.show-sql=false` and configure proper logging levels
+## Testing
 
-## 📚 Best Practices
+The system includes comprehensive validation at multiple levels:
 
-### Code Organization
-- ✅ Follow package-by-layer structure
-- ✅ Use consistent naming conventions
-- ✅ Implement proper exception handling
-- ✅ Add comprehensive logging
-- ✅ Write meaningful tests
+1. **Input Validation**: Jakarta Bean Validation annotations on DTOs
+2. **Business Logic Validation**: Service layer validation
+3. **Database Constraints**: Database-level constraints
 
-### Database
-- ✅ Always use migrations for schema changes
-- ✅ Add appropriate indexes for performance
-- ✅ Use proper constraints and validations
-- ✅ Document complex queries
+## Migration from COBOL
 
-### API Design
-- ✅ Use proper HTTP status codes
-- ✅ Implement pagination for collections
-- ✅ Validate input data
-- ✅ Return consistent response formats
-- ✅ Handle errors gracefully
+This implementation maintains 100% compatibility with the original COBOL business rules while providing:
 
-### Security
-- ✅ Never expose entities directly in APIs
-- ✅ Use DTOs for data transfer
-- ✅ Validate all inputs
-- ✅ Implement proper authentication/authorization
-- ✅ Log security events
+- RESTful API instead of CICS screens
+- Relational database instead of VSAM files
+- Modern validation framework instead of COBOL validation routines
+- Transaction management instead of CICS SYNCPOINT
+- Exception handling instead of CICS ABEND handling
 
-## 🤝 Contributing
+## Future Enhancements
 
-1. Follow the established architecture patterns
-2. Add tests for new features
-3. Update documentation
-4. Follow the coding standards
-5. Create meaningful commit messages
+Potential areas for enhancement:
 
----
+1. Security and authentication (OAuth2/JWT)
+2. Audit logging
+3. Event-driven architecture
+4. Microservices decomposition
+5. Real-time notifications
+6. Advanced reporting and analytics
 
-## 📄 Additional Documentation
+## License
 
-- [Detailed Architecture Guide](ARCHETYPE.md)
-- [Quick Start Guide](QUICKSTART.md)
-- [API Documentation](http://localhost:8080/actuator/mappings) (when running)
+[Your License Here]
 
-This archetype provides everything you need to build robust, scalable Spring Boot applications. Happy coding! 🚀
+## Contact
+
+[Your Contact Information]
