@@ -83,7 +83,7 @@ CREATE TABLE card_cross_references (
     FOREIGN KEY (card_number) REFERENCES cards(card_number),
     FOREIGN KEY (account_id) REFERENCES accounts(account_id),
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
-    UNIQUE KEY uk_card_account_customer (card_number, account_id, customer_id)
+    CONSTRAINT uk_card_account_customer UNIQUE (card_number, account_id, customer_id)
 );
 
 -- Create indexes for better query performance
