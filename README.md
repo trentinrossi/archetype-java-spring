@@ -1,301 +1,269 @@
-# Spring Boot Application Archetype
+# Card Transaction Lifecycle Management System
 
-A comprehensive Spring Boot 3.5.5 archetype with Java 21, PostgreSQL, JPA, Flyway migrations, and clean architecture patterns.
+## Overview
+This is a Spring Boot application that implements a comprehensive Card Transaction Lifecycle Management system. The application is a modernized version of the legacy COBOL CardDemo application, implementing all business rules for transaction processing, validation, and reporting.
 
-## 📋 Table of Contents
+## Business Context
+The system manages the complete lifecycle of credit card transactions including:
+- Transaction creation with comprehensive validation
+- Card and account management
+- Credit limit checking and account balance updates
+- Transaction category balance tracking
+- Date range filtering and reporting
 
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Architecture Guide](#architecture-guide)
-- [Development Guidelines](#development-guidelines)
-- [API Examples](#api-examples)
-- [Database Migrations](#database-migrations)
-- [Configuration](#configuration)
-- [Best Practices](#best-practices)
-- [Contributing](#contributing)
+## Technology Stack
+- **Java 17+**
+- **Spring Boot 3.x**
+- **Spring Data JPA**
+- **H2 Database** (development)
+- **Flyway** (database migrations)
+- **Lombok** (code generation)
+- **SpringDoc OpenAPI** (API documentation)
+- **Maven** (build tool)
 
-## 🚀 Overview
-
-This archetype provides a ready-to-use Spring Boot application structure that follows industry best practices and clean architecture principles. It's designed to help developers quickly set up new projects with a solid foundation.
-
-## ✨ Features
-
-- **Spring Boot 3.5.5** with Java 21
-- **PostgreSQL** database with JPA/Hibernate
-- **Flyway** database migrations
-- **Lombok** for reducing boilerplate code
-- **Spring Boot Actuator** for monitoring
-- **Layered Architecture** (Controller → Service → Repository → Entity)
-- **DTO Pattern** for API contracts
-- **Comprehensive Examples** for each layer
-- **Production-Ready Configuration**
-
-## 📁 Project Structure
-
+## Project Structure
 ```
 src/
 ├── main/
 │   ├── java/com/example/demo/
-│   │   ├── DemoApplication.java          # Main application class
-│   │   ├── controller/                   # REST Controllers
-│   │   │   └── UserController.java       # Example controller
-│   │   ├── dto/                         # Data Transfer Objects
-│   │   │   ├── CreateUserRequest.java    # Request DTO
-│   │   │   ├── UpdateUserRequest.java    # Update DTO
-│   │   │   └── UserResponse.java         # Response DTO
-│   │   ├── entity/                      # JPA Entities
-│   │   │   ├── User.java                # Example entity
-│   │   │   └── Order.java               # Related entity example
-│   │   ├── enums/                       # Enum definitions
-│   │   │   ├── UserStatus.java          # User status enum
-│   │   │   └── OrderStatus.java         # Order status enum
-│   │   ├── repository/                  # Data Access Layer
-│   │   │   └── UserRepository.java      # Example repository
-│   │   └── service/                     # Business Logic Layer
-│   │       └── UserService.java        # Example service
+│   │   ├── controller/          # REST API Controllers
+│   │   │   ├── TransactionController.java
+│   │   │   ├── AccountController.java
+│   │   │   ├── CardController.java
+│   │   │   └── CardCrossReferenceController.java
+│   │   ├── service/             # Business Logic Services
+│   │   │   ├── TransactionService.java
+│   │   │   ├── AccountService.java
+│   │   │   ├── CardService.java
+│   │   │   └── CardCrossReferenceService.java
+│   │   ├── repository/          # Data Access Layer
+│   │   │   ├── TransactionRepository.java
+│   │   │   ├── AccountRepository.java
+│   │   │   ├── CardRepository.java
+│   │   │   ├── CardCrossReferenceRepository.java
+│   │   │   ├── TransactionTypeRepository.java
+│   │   │   ├── TransactionCategoryRepository.java
+│   │   │   └── TransactionCategoryBalanceRepository.java
+│   │   ├── entity/              # JPA Entities
+│   │   │   ├── Transaction.java
+│   │   │   ├── Account.java
+│   │   │   ├── Card.java
+│   │   │   ├── CardCrossReference.java
+│   │   │   ├── TransactionType.java
+│   │   │   ├── TransactionCategory.java
+│   │   │   └── TransactionCategoryBalance.java
+│   │   └── dto/                 # Data Transfer Objects
+│   │       ├── CreateTransactionRequestDto.java
+│   │       ├── TransactionResponseDto.java
+│   │       ├── CreateAccountRequestDto.java
+│   │       ├── AccountResponseDto.java
+│   │       ├── CreateCardRequestDto.java
+│   │       ├── CardResponseDto.java
+│   │       ├── CreateCardCrossReferenceRequestDto.java
+│   │       └── CardCrossReferenceResponseDto.java
 │   └── resources/
-│       ├── application.properties       # Application configuration
-│       └── db/migration/               # Flyway migrations
-│           ├── V1__Create_users_table.sql
-│           ├── V2__Add_user_search_indexes.sql
-│           └── V3__Create_orders_table.sql
-└── test/                               # Test classes
+│       ├── application.properties
+│       └── db/migration/
+│           └── V1__create_card_transaction_tables.sql
+└── test/                        # Unit and Integration Tests
 ```
 
-## 🏁 Getting Started
+## Business Rules Implementation
 
-### Quick Start
-1. **Clone or use this archetype**
-2. **Configure your database** in `application.properties`
-3. **Run the application**: `./mvnw spring-boot:run`
-4. **Test the API**: `curl http://localhost:8080/api/users`
+### Transaction Validation (CBTRN01C & CBTRN02C)
+The system implements comprehensive transaction validation:
 
-For detailed setup instructions, see [QUICKSTART.md](QUICKSTART.md).
+1. **Error Code 100 - Invalid Card Number**: Validates card exists in cross-reference file
+2. **Error Code 101 - Account Not Found**: Confirms account exists and is accessible
+3. **Error Code 102 - Overlimit Transaction**: Checks if transaction exceeds available credit
+4. **Error Code 103 - Account Expired**: Validates transaction date is before account expiration
 
-## 🏗️ Architecture Guide
+### Transaction Processing (CBTRN02C)
+- Sequential transaction ID generation
+- Automatic account balance updates (current balance, cycle credit/debit)
+- Transaction category balance tracking
+- Timestamp management (original and processing timestamps)
 
-This application follows a **layered architecture** pattern:
+### Transaction Reporting (CBTRN03C)
+- Date range filtering by processing timestamp
+- Card number filtering
+- Pagination support for large result sets
 
-### 1. **Controller Layer** (`/controller`)
-- Handles HTTP requests and responses
-- Validates input data
-- Maps DTOs to/from service layer
-- Returns appropriate HTTP status codes
+## Database Schema
 
-### 2. **Service Layer** (`/service`)
-- Contains business logic
-- Orchestrates operations between repositories
-- Handles transactions
-- Performs data transformations
+### Core Tables
+- **accounts**: Customer account information with balances and credit limits
+- **cards**: Card details and status
+- **card_cross_reference**: Mapping between cards and accounts
+- **transactions**: Complete transaction records
+- **transaction_types**: Transaction type definitions
+- **transaction_categories**: Transaction category definitions
+- **transaction_category_balances**: Running balances by category
 
-### 3. **Repository Layer** (`/repository`)
-- Data access abstraction
-- Database operations through JPA
-- Custom queries when needed
+## API Endpoints
 
-### 4. **Entity Layer** (`/entity`)
-- JPA entity definitions
-- Database table mappings
-- Relationships between entities
+### Transaction Management
+- `POST /api/transactions` - Create new transaction
+- `GET /api/transactions` - Get all transactions (paginated)
+- `GET /api/transactions/{id}` - Get transaction by ID
+- `GET /api/transactions/transaction-id/{transactionId}` - Get by transaction ID
+- `GET /api/transactions/card/{cardNumber}` - Get transactions by card
+- `GET /api/transactions/date-range` - Get transactions by date range
+- `DELETE /api/transactions/{id}` - Delete transaction
 
-### 5. **DTO Layer** (`/dto`)
-- API contracts (Request/Response objects)
-- Input validation
-- Data transfer between layers
+### Account Management
+- `POST /api/accounts` - Create new account
+- `GET /api/accounts/{accountId}` - Get account by ID
+- `GET /api/accounts` - Get all accounts (paginated)
+- `DELETE /api/accounts/{accountId}` - Delete account
 
-### 6. **Enums** (`/enums`)
-- Type-safe constants
-- Business domain values
-- Status definitions
+### Card Management
+- `POST /api/cards` - Create new card
+- `GET /api/cards/{cardNumber}` - Get card by number
+- `GET /api/cards` - Get all cards (paginated)
+- `DELETE /api/cards/{cardNumber}` - Delete card
 
-For detailed architecture information, see [ARCHETYPE.md](ARCHETYPE.md).
+### Card Cross Reference Management
+- `POST /api/card-cross-references` - Create card-to-account mapping
+- `GET /api/card-cross-references/card/{cardNumber}` - Get mapping by card
+- `GET /api/card-cross-references/account/{accountId}` - Get mappings by account
+- `DELETE /api/card-cross-references/{cardNumber}` - Delete mapping
 
-## 🛠️ Development Guidelines
+## Getting Started
 
-### Creating a New Feature
+### Prerequisites
+- Java 17 or higher
+- Maven 3.6+
 
-Follow this order when implementing new features:
-
-1. **Entity** → Define your data model
-2. **Migration** → Create database schema
-3. **Repository** → Data access interface
-4. **DTOs** → API contracts
-5. **Service** → Business logic
-6. **Controller** → REST endpoints
-7. **Tests** → Comprehensive testing
-
-### Example Implementation
-
-```java
-// 1. Entity
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String name;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
-}
-
-// 2. Repository
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
-}
-
-// 3. Service
-@Service
-@RequiredArgsConstructor
-public class ProductService {
-    private final ProductRepository productRepository;
-    
-    public ProductResponse createProduct(CreateProductRequest request) {
-        // Business logic here
-    }
-}
-
-// 4. Controller
-@RestController
-@RequestMapping("/api/products")
-public class ProductController {
-    private final ProductService productService;
-    
-    @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody CreateProductRequest request) {
-        // Controller logic here
-    }
-}
-```
-
-## 📝 API Examples
-
-### User Management APIs
-
+### Build the Application
 ```bash
-# Create User
-POST /api/users
-{
-  "firstName": "John",
-  "lastName": "Doe", 
-  "email": "john.doe@example.com",
-  "phoneNumber": "555-1234"
-}
-
-# Get All Users (with pagination)
-GET /api/users?page=0&size=10&sort=createdAt,desc
-
-# Get User by ID
-GET /api/users/1
-
-# Update User
-PUT /api/users/1
-{
-  "firstName": "Jane",
-  "phoneNumber": "555-5678"
-}
-
-# Delete User
-DELETE /api/users/1
-
-# Search Users
-GET /api/users/search?q=john
-
-# Get Recent Users
-GET /api/users/recent
+mvn clean install
 ```
 
-## 🗃️ Database Migrations
-
-Flyway migrations follow this naming convention:
-- `V{version}__{description}.sql`
-- Example: `V1__Create_users_table.sql`
-
-### Migration Examples
-
-```sql
--- V1__Create_users_table.sql
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+### Run the Application
+```bash
+mvn spring-boot:run
 ```
 
-## ⚙️ Configuration
+The application will start on `http://localhost:8080`
+
+### Access H2 Console (Development)
+- URL: `http://localhost:8080/h2-console`
+- JDBC URL: `jdbc:h2:mem:cardtransactiondb`
+- Username: `sa`
+- Password: (leave empty)
+
+### Access API Documentation
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8080/api-docs`
+
+## Testing
+
+### Run Unit Tests
+```bash
+mvn test
+```
+
+### Run Integration Tests
+```bash
+mvn verify
+```
+
+## Sample Data
+The database migration script includes sample transaction types and categories:
+
+**Transaction Types:**
+- 01: Purchase
+- 02: Cash Advance
+- 03: Payment
+- 04: Refund
+- 05: Fee
+
+**Transaction Categories:**
+- 5411: Grocery Stores
+- 5812: Restaurants
+- 5541: Gas Stations
+- 5999: Miscellaneous Retail
+- 6011: ATM Cash Withdrawal
+
+## Configuration
 
 ### Database Configuration
+The application uses H2 in-memory database by default. To use a different database:
+
+1. Update `application.properties`:
 ```properties
-# PostgreSQL Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_database
+spring.datasource.url=jdbc:postgresql://localhost:5432/cardtransactiondb
 spring.datasource.username=your_username
 spring.datasource.password=your_password
-
-# JPA Configuration
-spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.show-sql=false
-
-# Flyway Configuration
-spring.flyway.locations=classpath:db/migration
-spring.flyway.baseline-on-migrate=true
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 ```
 
-### Development vs Production
-- **Development**: Use `spring.jpa.show-sql=true` for SQL logging
-- **Production**: Set `spring.jpa.show-sql=false` and configure proper logging levels
+2. Add the appropriate database driver dependency to `pom.xml`
 
-## 📚 Best Practices
+### Logging Configuration
+Adjust logging levels in `application.properties`:
+```properties
+logging.level.com.example.demo=DEBUG
+logging.level.org.springframework.web=INFO
+```
 
-### Code Organization
-- ✅ Follow package-by-layer structure
-- ✅ Use consistent naming conventions
-- ✅ Implement proper exception handling
-- ✅ Add comprehensive logging
-- ✅ Write meaningful tests
+## Error Handling
+The application implements comprehensive error handling:
+- Validation errors return 400 Bad Request with detailed messages
+- Business rule violations return 400 Bad Request with error codes
+- Resource not found returns 404 Not Found
+- Server errors return 500 Internal Server Error
 
-### Database
-- ✅ Always use migrations for schema changes
-- ✅ Add appropriate indexes for performance
-- ✅ Use proper constraints and validations
-- ✅ Document complex queries
+## Security Considerations
+**Note**: This implementation does not include authentication/authorization. For production use:
+- Implement Spring Security
+- Add JWT or OAuth2 authentication
+- Implement role-based access control
+- Encrypt sensitive data (card numbers, account information)
+- Add audit logging
 
-### API Design
-- ✅ Use proper HTTP status codes
-- ✅ Implement pagination for collections
-- ✅ Validate input data
-- ✅ Return consistent response formats
-- ✅ Handle errors gracefully
+## Performance Considerations
+- Database indexes on frequently queried fields
+- Pagination for large result sets
+- Transaction management for data consistency
+- Connection pooling configuration
 
-### Security
-- ✅ Never expose entities directly in APIs
-- ✅ Use DTOs for data transfer
-- ✅ Validate all inputs
-- ✅ Implement proper authentication/authorization
-- ✅ Log security events
+## Monitoring and Observability
+The application includes Spring Boot Actuator endpoints:
+- `/actuator/health` - Application health status
+- `/actuator/info` - Application information
+- `/actuator/metrics` - Application metrics
 
-## 🤝 Contributing
+## Deployment
 
-1. Follow the established architecture patterns
-2. Add tests for new features
-3. Update documentation
-4. Follow the coding standards
-5. Create meaningful commit messages
+### Build Docker Image
+```bash
+docker build -t card-transaction-management:latest .
+```
 
----
+### Run with Docker
+```bash
+docker run -p 8080:8080 card-transaction-management:latest
+```
 
-## 📄 Additional Documentation
+## Contributing
+1. Follow SOLID principles
+2. Write unit tests for new features
+3. Update API documentation
+4. Follow existing code style and conventions
 
-- [Detailed Architecture Guide](ARCHETYPE.md)
-- [Quick Start Guide](QUICKSTART.md)
-- [API Documentation](http://localhost:8080/actuator/mappings) (when running)
+## License
+[Specify your license here]
 
-This archetype provides everything you need to build robust, scalable Spring Boot applications. Happy coding! 🚀
+## Contact
+[Specify contact information]
+
+## Acknowledgments
+This application is a modernization of the legacy COBOL CardDemo application, implementing all business rules from:
+- CBTRN01C: Daily Transaction Processing and Validation
+- CBTRN02C: Daily Transaction Processing and Posting System
+- CBTRN03C: Transaction Detail Report Generator
+- COTRN01C: Transaction View Program
+- COTRN02C: Transaction Addition Program
+- CSUTLDTC: Date Validation Utility Program
