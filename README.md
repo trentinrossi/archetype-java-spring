@@ -1,301 +1,272 @@
-# Spring Boot Application Archetype
+# Card Transaction Lifecycle Management System
 
-A comprehensive Spring Boot 3.5.5 archetype with Java 21, PostgreSQL, JPA, Flyway migrations, and clean architecture patterns.
+## Overview
 
-## 📋 Table of Contents
+This is a modern Spring Boot application that implements the Card Transaction Lifecycle Management system, migrated from legacy COBOL programs. The system provides comprehensive functionality for managing credit card transactions, including validation, posting, reporting, and account management.
 
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Architecture Guide](#architecture-guide)
-- [Development Guidelines](#development-guidelines)
-- [API Examples](#api-examples)
-- [Database Migrations](#database-migrations)
-- [Configuration](#configuration)
-- [Best Practices](#best-practices)
-- [Contributing](#contributing)
+## Legacy System Migration
 
-## 🚀 Overview
+This application modernizes the following COBOL programs:
 
-This archetype provides a ready-to-use Spring Boot application structure that follows industry best practices and clean architecture principles. It's designed to help developers quickly set up new projects with a solid foundation.
+- **CBTRN01C**: Daily Transaction Processing and Validation Program
+- **CBTRN02C**: Daily Transaction Processing and Posting System
+- **CBTRN03C**: Transaction Detail Report Generator
+- **COTRN01C**: Transaction View Program
+- **COTRN02C**: Transaction Addition Program
+- **CSUTLDTC**: Date Validation Utility Program
 
-## ✨ Features
+## Features
 
-- **Spring Boot 3.5.5** with Java 21
-- **PostgreSQL** database with JPA/Hibernate
-- **Flyway** database migrations
-- **Lombok** for reducing boilerplate code
-- **Spring Boot Actuator** for monitoring
-- **Layered Architecture** (Controller → Service → Repository → Entity)
-- **DTO Pattern** for API contracts
-- **Comprehensive Examples** for each layer
-- **Production-Ready Configuration**
+### Transaction Management
+- Transaction validation with comprehensive business rules
+- Transaction posting with automatic balance updates
+- Transaction retrieval by ID, card number, or account
+- Sequential transaction ID generation
 
-## 📁 Project Structure
+### Account Management
+- Account creation and updates
+- Balance tracking (current balance, cycle credits/debits)
+- Credit limit validation
+- Account expiration validation
+
+### Reporting
+- Date range transaction reports
+- Paginated transaction listings
+- Transaction categorization and balances
+
+### Validation Services
+- Card number cross-reference validation
+- Account existence validation
+- Credit limit checking
+- Date format validation
+- Account expiration validation
+
+## Technology Stack
+
+- **Java 17+**
+- **Spring Boot 3.x**
+- **Spring Data JPA**
+- **PostgreSQL/MySQL** (configurable)
+- **Lombok** for boilerplate reduction
+- **Jakarta Validation** for input validation
+- **Flyway** for database migrations
+
+## Project Structure
 
 ```
 src/
 ├── main/
 │   ├── java/com/example/demo/
-│   │   ├── DemoApplication.java          # Main application class
-│   │   ├── controller/                   # REST Controllers
-│   │   │   └── UserController.java       # Example controller
-│   │   ├── dto/                         # Data Transfer Objects
-│   │   │   ├── CreateUserRequest.java    # Request DTO
-│   │   │   ├── UpdateUserRequest.java    # Update DTO
-│   │   │   └── UserResponse.java         # Response DTO
-│   │   ├── entity/                      # JPA Entities
-│   │   │   ├── User.java                # Example entity
-│   │   │   └── Order.java               # Related entity example
-│   │   ├── enums/                       # Enum definitions
-│   │   │   ├── UserStatus.java          # User status enum
-│   │   │   └── OrderStatus.java         # Order status enum
-│   │   ├── repository/                  # Data Access Layer
-│   │   │   └── UserRepository.java      # Example repository
-│   │   └── service/                     # Business Logic Layer
-│   │       └── UserService.java        # Example service
+│   │   ├── controller/          # REST API endpoints
+│   │   │   ├── TransactionController.java
+│   │   │   ├── AccountController.java
+│   │   │   └── DateValidationController.java
+│   │   ├── service/             # Business logic layer
+│   │   │   ├── TransactionService.java
+│   │   │   ├── AccountService.java
+│   │   │   └── DateValidationService.java
+│   │   ├── repository/          # Data access layer
+│   │   │   ├── TransactionRepository.java
+│   │   │   ├── AccountRepository.java
+│   │   │   ├── CardRepository.java
+│   │   │   ├── CardCrossReferenceRepository.java
+│   │   │   ├── TransactionCategoryBalanceRepository.java
+│   │   │   └── CustomerRepository.java
+│   │   ├── entity/              # JPA entities
+│   │   │   ├── Transaction.java
+│   │   │   ├── Account.java
+│   │   │   ├── Card.java
+│   │   │   ├── CardCrossReference.java
+│   │   │   ├── TransactionCategoryBalance.java
+│   │   │   └── Customer.java
+│   │   ├── dto/                 # Data Transfer Objects
+│   │   │   ├── TransactionDTO.java
+│   │   │   ├── AccountDTO.java
+│   │   │   ├── TransactionValidationResultDTO.java
+│   │   │   ├── TransactionReportDTO.java
+│   │   │   └── DateRangeRequestDTO.java
+│   │   └── exception/           # Exception handling
+│   │       └── GlobalExceptionHandler.java
 │   └── resources/
-│       ├── application.properties       # Application configuration
-│       └── db/migration/               # Flyway migrations
-│           ├── V1__Create_users_table.sql
-│           ├── V2__Add_user_search_indexes.sql
-│           └── V3__Create_orders_table.sql
-└── test/                               # Test classes
+│       ├── application.properties
+│       └── db/migration/        # Flyway migrations
+│           └── V1__create_card_transaction_tables.sql
+└── test/                        # Unit and integration tests
 ```
 
-## 🏁 Getting Started
+## Database Schema
 
-### Quick Start
-1. **Clone or use this archetype**
-2. **Configure your database** in `application.properties`
-3. **Run the application**: `./mvnw spring-boot:run`
-4. **Test the API**: `curl http://localhost:8080/api/users`
+The application uses the following main tables:
 
-For detailed setup instructions, see [QUICKSTART.md](QUICKSTART.md).
+- **customers**: Customer master data
+- **accounts**: Account information with balances and limits
+- **cards**: Credit card information
+- **card_cross_reference**: Card-to-account mapping
+- **transactions**: Transaction records
+- **transaction_category_balance**: Category-level balance tracking
 
-## 🏗️ Architecture Guide
+## Getting Started
 
-This application follows a **layered architecture** pattern:
+### Prerequisites
 
-### 1. **Controller Layer** (`/controller`)
-- Handles HTTP requests and responses
-- Validates input data
-- Maps DTOs to/from service layer
-- Returns appropriate HTTP status codes
+- Java 17 or higher
+- Maven 3.6+
+- PostgreSQL 12+ or MySQL 8+
 
-### 2. **Service Layer** (`/service`)
-- Contains business logic
-- Orchestrates operations between repositories
-- Handles transactions
-- Performs data transformations
+### Configuration
 
-### 3. **Repository Layer** (`/repository`)
-- Data access abstraction
-- Database operations through JPA
-- Custom queries when needed
+Update `application.properties` with your database configuration:
 
-### 4. **Entity Layer** (`/entity`)
-- JPA entity definitions
-- Database table mappings
-- Relationships between entities
-
-### 5. **DTO Layer** (`/dto`)
-- API contracts (Request/Response objects)
-- Input validation
-- Data transfer between layers
-
-### 6. **Enums** (`/enums`)
-- Type-safe constants
-- Business domain values
-- Status definitions
-
-For detailed architecture information, see [ARCHETYPE.md](ARCHETYPE.md).
-
-## 🛠️ Development Guidelines
-
-### Creating a New Feature
-
-Follow this order when implementing new features:
-
-1. **Entity** → Define your data model
-2. **Migration** → Create database schema
-3. **Repository** → Data access interface
-4. **DTOs** → API contracts
-5. **Service** → Business logic
-6. **Controller** → REST endpoints
-7. **Tests** → Comprehensive testing
-
-### Example Implementation
-
-```java
-// 1. Entity
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String name;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
-}
-
-// 2. Repository
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
-}
-
-// 3. Service
-@Service
-@RequiredArgsConstructor
-public class ProductService {
-    private final ProductRepository productRepository;
-    
-    public ProductResponse createProduct(CreateProductRequest request) {
-        // Business logic here
-    }
-}
-
-// 4. Controller
-@RestController
-@RequestMapping("/api/products")
-public class ProductController {
-    private final ProductService productService;
-    
-    @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody CreateProductRequest request) {
-        // Controller logic here
-    }
-}
-```
-
-## 📝 API Examples
-
-### User Management APIs
-
-```bash
-# Create User
-POST /api/users
-{
-  "firstName": "John",
-  "lastName": "Doe", 
-  "email": "john.doe@example.com",
-  "phoneNumber": "555-1234"
-}
-
-# Get All Users (with pagination)
-GET /api/users?page=0&size=10&sort=createdAt,desc
-
-# Get User by ID
-GET /api/users/1
-
-# Update User
-PUT /api/users/1
-{
-  "firstName": "Jane",
-  "phoneNumber": "555-5678"
-}
-
-# Delete User
-DELETE /api/users/1
-
-# Search Users
-GET /api/users/search?q=john
-
-# Get Recent Users
-GET /api/users/recent
-```
-
-## 🗃️ Database Migrations
-
-Flyway migrations follow this naming convention:
-- `V{version}__{description}.sql`
-- Example: `V1__Create_users_table.sql`
-
-### Migration Examples
-
-```sql
--- V1__Create_users_table.sql
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-## ⚙️ Configuration
-
-### Database Configuration
 ```properties
-# PostgreSQL Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_database
+spring.datasource.url=jdbc:postgresql://localhost:5432/cardtransactions
 spring.datasource.username=your_username
 spring.datasource.password=your_password
 
-# JPA Configuration
 spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.show-sql=false
+spring.jpa.show-sql=true
 
-# Flyway Configuration
-spring.flyway.locations=classpath:db/migration
-spring.flyway.baseline-on-migrate=true
+spring.flyway.enabled=true
 ```
 
-### Development vs Production
-- **Development**: Use `spring.jpa.show-sql=true` for SQL logging
-- **Production**: Set `spring.jpa.show-sql=false` and configure proper logging levels
+### Build and Run
 
-## 📚 Best Practices
+```bash
+# Build the project
+mvn clean install
 
-### Code Organization
-- ✅ Follow package-by-layer structure
-- ✅ Use consistent naming conventions
-- ✅ Implement proper exception handling
-- ✅ Add comprehensive logging
-- ✅ Write meaningful tests
+# Run the application
+mvn spring-boot:run
 
-### Database
-- ✅ Always use migrations for schema changes
-- ✅ Add appropriate indexes for performance
-- ✅ Use proper constraints and validations
-- ✅ Document complex queries
+# Or run the JAR
+java -jar target/demo-0.0.1-SNAPSHOT.jar
+```
 
-### API Design
-- ✅ Use proper HTTP status codes
-- ✅ Implement pagination for collections
-- ✅ Validate input data
-- ✅ Return consistent response formats
-- ✅ Handle errors gracefully
+The application will start on `http://localhost:8080`
 
-### Security
-- ✅ Never expose entities directly in APIs
-- ✅ Use DTOs for data transfer
-- ✅ Validate all inputs
-- ✅ Implement proper authentication/authorization
-- ✅ Log security events
+## API Documentation
 
-## 🤝 Contributing
+Comprehensive API documentation is available in `openapi-summary.md`. Key endpoints include:
 
-1. Follow the established architecture patterns
-2. Add tests for new features
-3. Update documentation
-4. Follow the coding standards
-5. Create meaningful commit messages
+### Transaction Endpoints
+- `POST /api/transactions/validate` - Validate transaction
+- `POST /api/transactions` - Post new transaction
+- `GET /api/transactions/{id}` - Get transaction by ID
+- `GET /api/transactions/card/{cardNumber}` - Get transactions by card
+- `GET /api/transactions/account/{accountId}` - Get transactions by account
+- `POST /api/transactions/report` - Generate transaction report
 
----
+### Account Endpoints
+- `GET /api/accounts/{accountId}` - Get account by ID
+- `GET /api/accounts/customer/{customerId}` - Get accounts by customer
+- `POST /api/accounts` - Create new account
+- `PUT /api/accounts/{accountId}` - Update account
 
-## 📄 Additional Documentation
+### Validation Endpoints
+- `GET /api/validation/date` - Validate date format
 
-- [Detailed Architecture Guide](ARCHETYPE.md)
-- [Quick Start Guide](QUICKSTART.md)
-- [API Documentation](http://localhost:8080/actuator/mappings) (when running)
+## Business Rules
 
-This archetype provides everything you need to build robust, scalable Spring Boot applications. Happy coding! 🚀
+### Transaction Validation (CBTRN01C)
+1. Card number must exist in cross-reference file
+2. Account must exist and be active
+3. Transaction date must be before account expiration
+4. All required fields must be present
+
+### Transaction Posting (CBTRN02C)
+1. All validation rules must pass
+2. Credit limit check: (cycle_credit - cycle_debit + amount) ≤ credit_limit
+3. Sequential transaction ID generation
+4. Automatic balance updates:
+   - Current balance += transaction amount
+   - Cycle credit/debit updated based on amount sign
+5. Category balance tracking updated
+
+### Report Generation (CBTRN03C)
+1. Filter transactions by processing timestamp date range
+2. Order by account ID and timestamp
+3. Support pagination for large result sets
+4. Include transaction type and category descriptions
+
+## Error Handling
+
+The application provides detailed error responses:
+
+- **400 Bad Request**: Validation failures, invalid input
+- **404 Not Found**: Resource not found
+- **500 Internal Server Error**: Unexpected errors
+
+All errors include timestamp, status code, error type, and descriptive message.
+
+## Testing
+
+```bash
+# Run all tests
+mvn test
+
+# Run specific test class
+mvn test -Dtest=TransactionServiceTest
+
+# Run integration tests
+mvn verify
+```
+
+## Deployment
+
+### Docker Deployment
+
+```dockerfile
+FROM openjdk:17-jdk-slim
+COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]
+```
+
+```bash
+# Build Docker image
+docker build -t card-transaction-api .
+
+# Run container
+docker run -p 8080:8080 card-transaction-api
+```
+
+### Production Considerations
+
+1. **Security**: Implement authentication and authorization (OAuth 2.0, JWT)
+2. **Monitoring**: Add application monitoring (Prometheus, Grafana)
+3. **Logging**: Configure centralized logging (ELK stack)
+4. **Performance**: Enable caching for frequently accessed data
+5. **Scalability**: Deploy multiple instances behind load balancer
+6. **Database**: Use connection pooling and optimize queries
+
+## Migration Notes
+
+### Key Differences from Legacy System
+
+1. **Data Access**: VSAM files replaced with relational database
+2. **Transaction Management**: CICS transactions replaced with Spring @Transactional
+3. **Screen Handling**: BMS maps replaced with REST API
+4. **Date Handling**: COBOL date routines replaced with Java LocalDate/LocalDateTime
+5. **Error Handling**: File status codes replaced with exceptions and HTTP status codes
+
+### Preserved Business Logic
+
+- Transaction validation rules (card verification, credit limits, expiration)
+- Sequential transaction ID generation
+- Balance update calculations
+- Category balance tracking
+- Date range filtering for reports
+
+## Contributing
+
+1. Follow Spring Boot best practices
+2. Maintain SOLID principles
+3. Write unit tests for all business logic
+4. Update API documentation for new endpoints
+5. Follow existing code style and patterns
+
+## License
+
+[Specify your license here]
+
+## Support
+
+For questions or issues, please contact the development team or create an issue in the project repository.
