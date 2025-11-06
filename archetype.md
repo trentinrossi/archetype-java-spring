@@ -27,7 +27,7 @@ src/
 
 ## Architecture Layers
 
-### 1. Controller Layer (`/controller`)
+### 1. Controller Layer
 
 - **Purpose**: Handle HTTP requests and responses
 - **Responsibilities**:
@@ -114,7 +114,7 @@ public class UserController {
 }
 ```
 
-### 2. DTO Layer (`/dto`)
+### 2. DTO Layer
 
 - **Purpose**: Data Transfer Objects for API communication
 - **Responsibilities**:
@@ -146,7 +146,7 @@ public class CreateUserRequestDto {
 }
 ```
 
-### 3. Service Layer (`/service`)
+### 3. Service Layer
 
 - **Purpose**: Business logic and orchestration
 - **Responsibilities**:
@@ -233,7 +233,7 @@ public class UserService {
 }
 ```
 
-### 4. Repository Layer (`/repository`)
+### 4. Repository Layer
 
 - **Purpose**: Data access abstraction
 - **Responsibilities**:
@@ -264,7 +264,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 }
 ```
 
-### 5. Entity Layer (`/entity`)
+### 5. Entity Layer
 
 - **Purpose**: Database model representation
 - **Responsibilities**:
@@ -323,7 +323,7 @@ public class User {
 }
 ```
 
-### 6. Enums (`/enums`)
+### 6. Enums Layer
 
 - **Purpose**: Define constant values and types
 - **Responsibilities**:
