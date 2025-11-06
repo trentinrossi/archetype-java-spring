@@ -1,0 +1,579 @@
+{
+  "application_metadata": {
+    "name": "CBACT02C - Card Data File Reader and Display",
+    "description": "Batch card data file reader and display utility that sequentially reads through card data and displays each card record for data verification, debugging, and administrative purposes",
+    "domain": "card-and-payment"
+  },
+  "backend": {
+    "business_entities": [
+      {
+        "name": "Card",
+        "description": "Core card entity containing card identification, security, and status information linked to customer accounts",
+        "attributes": [
+          {
+            "name": "card_number",
+            "type": "alphanumeric",
+            "length": 16,
+            "required": true,
+            "description": "Unique card number identifier serving as primary key"
+          },
+          {
+            "name": "account_id",
+            "type": "numeric",
+            "length": 11,
+            "required": true,
+            "description": "Account identifier associated with the card, links card to customer account"
+          },
+          {
+            "name": "cvv_code",
+            "type": "numeric",
+            "length": 3,
+            "required": true,
+            "description": "Card Verification Value code for security validation purposes"
+          },
+          {
+            "name": "embossed_name",
+            "type": "alphanumeric",
+            "length": 50,
+            "required": true,
+            "description": "Name embossed on the physical card for cardholder identification"
+          },
+          {
+            "name": "expiration_date",
+            "type": "date",
+            "length": 10,
+            "required": true,
+            "description": "Card expiration date in YYYY-MM-DD format for validity checking"
+          },
+          {
+            "name": "active_status",
+            "type": "character",
+            "length": 1,
+            "required": true,
+            "description": "Status indicator showing whether card is active or inactive, controls card usability for transactions"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "Account",
+            "relationship_type": "belongs_to",
+            "cardinality": "many_to_one"
+          }
+        ]
+      }
+    ],
+    "business_rules": [
+      {
+        "id": "BR-CBACT02C-001",
+        "name": "Sequential Card Processing",
+        "description": "All card records must be processed sequentially from beginning to end of the card dataset without filtering or selection",
+        "category": "data_processing",
+        "logic": "Process every card record in the data source sequentially, displaying complete card information for each record",
+        "conditions": [
+          "Card data source is accessible",
+          "No end-of-data condition has been reached"
+        ],
+        "actions": [
+          "Read next card record in sequence",
+          "Display complete card information",
+          "Continue until all records are processed"
+        ]
+      },
+      {
+        "id": "BR-CBACT02C-002",
+        "name": "Card-Account Association",
+        "description": "Each card must be associated with a valid account identifier establishing the relationship between card and account",
+        "category": "data_integrity",
+        "logic": "Card entity maintains foreign key reference to account entity through account_id field",
+        "conditions": [
+          "Card record exists",
+          "Account ID is valid 11-digit numeric"
+        ],
+        "actions": [
+          "Store account ID in card record",
+          "Maintain referential integrity between card and account"
+        ]
+      },
+      {
+        "id": "BR-CBACT02C-003",
+        "name": "Card Security Information",
+        "description": "Each card contains sensitive security information including CVV code that must be protected",
+        "category": "security",
+        "logic": "CVV code is a 3-digit numeric value stored as part of card record for transaction validation",
+        "conditions": [
+          "Card is issued",
+          "CVV code is 3-digit numeric"
+        ],
+        "actions": [
+          "Store CVV code securely",
+          "Use CVV for transaction validation",
+          "Protect CVV from unauthorized access"
+        ]
+      },
+      {
+        "id": "BR-CBACT02C-004",
+        "name": "Card Expiration Management",
+        "description": "Each card has an expiration date that determines card validity period for transaction authorization",
+        "category": "card_lifecycle",
+        "logic": "Expiration date stored in YYYY-MM-DD format determines when card can no longer be used for transactions",
+        "conditions": [
+          "Card is issued",
+          "Expiration date is valid date"
+        ],
+        "actions": [
+          "Store expiration date at card issuance",
+          "Check expiration date during transaction authorization",
+          "Reject transactions for expired cards"
+        ]
+      },
+      {
+        "id": "BR-CBACT02C-005",
+        "name": "Card Active Status Control",
+        "description": "Card active status indicator controls whether card can be used for transactions",
+        "category": "card_status",
+        "logic": "Single character status flag determines if card is active and can process transactions",
+        "conditions": [
+          "Card exists in system",
+          "Status is valid single character"
+        ],
+        "actions": [
+          "Set status at card issuance",
+          "Update status based on account activity",
+          "Block transactions for inactive cards"
+        ]
+      },
+      {
+        "id": "BR-CBACT02C-006",
+        "name": "Cardholder Identification",
+        "description": "Each card displays embossed name for cardholder identification and verification",
+        "category": "cardholder_data",
+        "logic": "Embossed name field stores customer-facing identification up to 50 characters",
+        "conditions": [
+          "Card is issued",
+          "Cardholder name is provided"
+        ],
+        "actions": [
+          "Store embossed name at card issuance",
+          "Display name on physical card",
+          "Use for cardholder verification"
+        ]
+      },
+      {
+        "id": "BR-CBACT02C-007",
+        "name": "Card Record Completeness",
+        "description": "Each card record must contain complete information including card number, account association, security codes, expiration, and status",
+        "category": "data_integrity",
+        "logic": "Complete 150-character card record includes 16-character card number and 134 characters of additional card data",
+        "conditions": [
+          "Card is being stored or retrieved",
+          "All mandatory fields are populated"
+        ],
+        "actions": [
+          "Validate all mandatory fields are present",
+          "Ensure data integrity during storage and retrieval",
+          "Display complete card information for verification"
+        ]
+      }
+    ],
+    "validations": [
+      {
+        "field": "card_number",
+        "rule": "Must be 16-character alphanumeric value and unique across all cards",
+        "error_message": "Invalid card number",
+        "severity": "error"
+      },
+      {
+        "field": "account_id",
+        "rule": "Must be 11-digit numeric value referencing valid account",
+        "error_message": "Invalid account identifier",
+        "severity": "error"
+      },
+      {
+        "field": "cvv_code",
+        "rule": "Must be exactly 3-digit numeric value",
+        "error_message": "Invalid CVV code",
+        "severity": "error"
+      },
+      {
+        "field": "embossed_name",
+        "rule": "Must be 50-character or less alphanumeric field, cannot be empty",
+        "error_message": "Invalid embossed name",
+        "severity": "error"
+      },
+      {
+        "field": "expiration_date",
+        "rule": "Must be valid date in YYYY-MM-DD format, must be future date at issuance",
+        "error_message": "Invalid expiration date",
+        "severity": "error"
+      },
+      {
+        "field": "active_status",
+        "rule": "Must be single character indicating active or inactive status",
+        "error_message": "Invalid card status",
+        "severity": "error"
+      }
+    ],
+    "calculations": [],
+    "workflows": [
+      {
+        "name": "Card Data Extraction Process",
+        "description": "Sequential workflow to extract and display all card records from the system for verification and administrative purposes",
+        "steps": [
+          {
+            "step_number": 1,
+            "action": "Initialize card data extraction process",
+            "conditions": [
+              "Card data source is accessible",
+              "Processing authorization granted"
+            ],
+            "next_step": "2"
+          },
+          {
+            "step_number": 2,
+            "action": "Establish connection to card data source",
+            "conditions": [
+              "Data source connection successful",
+              "Read-only access mode established"
+            ],
+            "next_step": "3"
+          },
+          {
+            "step_number": 3,
+            "action": "Begin sequential record processing loop",
+            "conditions": [
+              "More records available to process",
+              "End-of-file not reached"
+            ],
+            "next_step": "4"
+          },
+          {
+            "step_number": 4,
+            "action": "Retrieve next card record in sequence",
+            "conditions": [
+              "Record retrieval successful",
+              "Not end of data"
+            ],
+            "next_step": "5"
+          },
+          {
+            "step_number": 5,
+            "action": "Display complete card record with all fields",
+            "conditions": [
+              "Record data is valid",
+              "All mandatory fields present"
+            ],
+            "next_step": "3"
+          },
+          {
+            "step_number": 6,
+            "action": "Detect end of data condition",
+            "conditions": [
+              "All records have been processed",
+              "No more records available"
+            ],
+            "next_step": "7"
+          },
+          {
+            "step_number": 7,
+            "action": "Close connection to card data source",
+            "conditions": [
+              "Processing complete",
+              "All records displayed"
+            ],
+            "next_step": "8"
+          },
+          {
+            "step_number": 8,
+            "action": "Complete card data extraction process",
+            "conditions": [
+              "All cleanup completed successfully",
+              "Resources released"
+            ],
+            "next_step": "end"
+          }
+        ]
+      }
+    ],
+    "integrations": [
+      {
+        "name": "Card Data Repository",
+        "type": "data_source",
+        "purpose": "Primary source of card information for extraction, reporting, and administrative operations",
+        "data_exchanged": [
+          "Card records with complete card details",
+          "Card numbers (unique identifiers)",
+          "Account associations",
+          "Security information (CVV codes)",
+          "Cardholder identification",
+          "Expiration dates",
+          "Status indicators"
+        ],
+        "trigger_conditions": [
+          "Batch extraction process initiated",
+          "Administrative reporting required",
+          "Data verification needed",
+          "System debugging required"
+        ]
+      },
+      {
+        "name": "Account System",
+        "type": "related_entity",
+        "purpose": "Provides account information linked to cards through account_id foreign key relationship",
+        "data_exchanged": [
+          "Account identifiers",
+          "Account-card associations"
+        ],
+        "trigger_conditions": [
+          "Card-account relationship validation needed",
+          "Cross-entity data verification required"
+        ]
+      }
+    ],
+    "security": {
+      "roles": [
+        "System Administrator",
+        "Card Administrator",
+        "Data Administrator",
+        "Batch Process Operator"
+      ],
+      "permissions": [
+        {
+          "role": "System Administrator",
+          "resource": "Card Data",
+          "actions": [
+            "read",
+            "extract",
+            "report",
+            "view_sensitive_data"
+          ]
+        },
+        {
+          "role": "Card Administrator",
+          "resource": "Card Data",
+          "actions": [
+            "read",
+            "extract",
+            "report",
+            "view_sensitive_data"
+          ]
+        },
+        {
+          "role": "Data Administrator",
+          "resource": "Card Data",
+          "actions": [
+            "read",
+            "extract",
+            "report"
+          ]
+        },
+        {
+          "role": "Batch Process Operator",
+          "resource": "Card Data",
+          "actions": [
+            "read",
+            "extract"
+          ]
+        }
+      ],
+      "authentication_requirements": [
+        "Authorized batch job execution",
+        "System-level access credentials",
+        "Data access permissions for card repository",
+        "Elevated privileges for viewing sensitive card information (CVV codes)"
+      ]
+    },
+    "error_handling": [
+      {
+        "error_code": "ERR-CARD-001",
+        "condition": "Unable to establish connection to card data source",
+        "business_impact": "Card data extraction cannot proceed, reporting unavailable, administrative functions blocked",
+        "suggested_action": "Verify data source availability and access permissions, check system connectivity, retry operation"
+      },
+      {
+        "error_code": "ERR-CARD-002",
+        "condition": "Error reading card record during sequential processing",
+        "business_impact": "Incomplete card data extraction, potential data integrity issues, missing cards from report",
+        "suggested_action": "Check data source integrity, log error details, identify corrupted records, notify system administrator"
+      },
+      {
+        "error_code": "ERR-CARD-003",
+        "condition": "Unable to properly close connection to card data source",
+        "business_impact": "Potential resource leak, may affect subsequent processing, system resources not released",
+        "suggested_action": "Log error, verify system resources, investigate data source status, monitor for resource exhaustion"
+      },
+      {
+        "error_code": "INFO-CARD-001",
+        "condition": "End of card data reached",
+        "business_impact": "Normal completion of data extraction, all records processed successfully",
+        "suggested_action": "Complete processing and close connections normally, verify expected record count"
+      }
+    ]
+  },
+  "frontend": {
+    "screens": [],
+    "reports": [
+      {
+        "name": "Complete Card Data Report",
+        "description": "Comprehensive listing of all card records with complete field details for verification, debugging, and administrative purposes",
+        "type": "batch_output",
+        "data_sources": [
+          "Card Data Repository"
+        ],
+        "filters": [],
+        "columns": [
+          {
+            "name": "Card Number",
+            "data_field": "card_number",
+            "format": "16-character alphanumeric",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account ID",
+            "data_field": "account_id",
+            "format": "11-digit numeric",
+            "aggregation": "none"
+          },
+          {
+            "name": "CVV Code",
+            "data_field": "cvv_code",
+            "format": "3-digit numeric (sensitive)",
+            "aggregation": "none"
+          },
+          {
+            "name": "Embossed Name",
+            "data_field": "embossed_name",
+            "format": "50-character alphanumeric",
+            "aggregation": "none"
+          },
+          {
+            "name": "Expiration Date",
+            "data_field": "expiration_date",
+            "format": "date (YYYY-MM-DD)",
+            "aggregation": "none"
+          },
+          {
+            "name": "Active Status",
+            "data_field": "active_status",
+            "format": "single character",
+            "aggregation": "none"
+          }
+        ],
+        "sorting": [
+          "card_number ascending"
+        ],
+        "grouping": []
+      }
+    ],
+    "navigation_flow": [],
+    "user_messages": [
+      {
+        "code": "MSG-CBACT02C-001",
+        "type": "info",
+        "message": "START OF EXECUTION OF PROGRAM CBACT02C",
+        "context": "Program initialization - indicates beginning of card data extraction process"
+      },
+      {
+        "code": "MSG-CBACT02C-002",
+        "type": "info",
+        "message": "END OF EXECUTION OF PROGRAM CBACT02C",
+        "context": "Program completion - indicates successful completion of card data extraction process"
+      },
+      {
+        "code": "MSG-CBACT02C-003",
+        "type": "error",
+        "message": "ERROR OPENING CARDFILE",
+        "context": "Data source connection failure - unable to establish connection to card data repository"
+      },
+      {
+        "code": "MSG-CBACT02C-004",
+        "type": "error",
+        "message": "ERROR READING CARDFILE",
+        "context": "Data retrieval failure - error occurred while reading card record during sequential processing"
+      },
+      {
+        "code": "MSG-CBACT02C-005",
+        "type": "error",
+        "message": "ERROR CLOSING CARDFILE",
+        "context": "Data source disconnection failure - unable to properly close connection to card data repository"
+      },
+      {
+        "code": "MSG-CBACT02C-006",
+        "type": "error",
+        "message": "ABENDING PROGRAM",
+        "context": "Critical error termination - program ending abnormally due to unrecoverable error condition"
+      }
+    ]
+  },
+  "data_flows": [
+    {
+      "name": "Card Data Extraction Flow",
+      "description": "Sequential flow of card data from repository to output display for administrative and verification purposes",
+      "source": "Card Data Repository",
+      "destination": "Report Output",
+      "data_elements": [
+        "card_number",
+        "account_id",
+        "cvv_code",
+        "embossed_name",
+        "expiration_date",
+        "active_status"
+      ],
+      "transformations": [
+        "Format fields for consistent display presentation",
+        "Apply field labels for human readability",
+        "Format date fields in YYYY-MM-DD standard",
+        "Display complete card records sequentially"
+      ]
+    },
+    {
+      "name": "Card-Account Relationship Flow",
+      "description": "Logical relationship between card entity and account entity through account_id foreign key",
+      "source": "Card Entity",
+      "destination": "Account Entity",
+      "data_elements": [
+        "account_id (foreign key)"
+      ],
+      "transformations": [
+        "Maintain referential integrity between card and account",
+        "Validate account_id references valid account"
+      ]
+    }
+  ],
+  "business_constraints": [
+    {
+      "type": "data_integrity",
+      "description": "Card numbers must be unique across entire card dataset",
+      "impact": "Ensures each card can be uniquely identified and prevents duplicate card records"
+    },
+    {
+      "type": "referential_integrity",
+      "description": "Each card must be associated with a valid account through account_id foreign key",
+      "impact": "Ensures cards are properly linked to customer accounts and orphaned cards are prevented"
+    },
+    {
+      "type": "security_data_protection",
+      "description": "CVV codes are sensitive security information requiring protected access",
+      "impact": "Requires elevated privileges to view card security information, compliance with payment card industry standards"
+    },
+    {
+      "type": "card_validity",
+      "description": "Card expiration date determines the period during which card is valid for transactions",
+      "impact": "Expired cards must be rejected for transaction authorization to prevent fraud and security breaches"
+    },
+    {
+      "type": "card_status_control",
+      "description": "Card active status determines whether card can be used for transactions",
+      "impact": "Inactive cards must be blocked from processing transactions regardless of expiration date"
+    },
+    {
+      "type": "sequential_processing",
+      "description": "All card records must be processed in sequential order without filtering",
+      "impact": "Ensures complete data extraction and prevents selective or partial reporting"
+    },
+    {
+      "type": "data_completeness",
+      "description": "Each card record must contain all mandatory fields: card number, account ID, CVV, name, expiration, and status",
+      "impact": "Incomplete records indicate data integrity issues requiring investigation and correction"
+    }
+  ]
+}

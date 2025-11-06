@@ -1,0 +1,761 @@
+{
+  "application_metadata": {
+    "name": "CBCUS01C - Customer Data Reader and Display",
+    "description": "Batch utility program that reads and displays all customer records from the customer master file. Serves as a data extraction and reporting tool for administrative functions, data verification, auditing, and troubleshooting purposes.",
+    "domain": "Account and Customer Management"
+  },
+  "backend": {
+    "business_entities": [
+      {
+        "name": "Customer",
+        "description": "Complete customer information record containing personal, contact, and financial details for credit card account holders",
+        "attributes": [
+          {
+            "name": "customer_id",
+            "type": "numeric",
+            "length": 9,
+            "required": true,
+            "description": "Unique customer identifier serving as primary key"
+          },
+          {
+            "name": "first_name",
+            "type": "string",
+            "length": 25,
+            "required": true,
+            "description": "Customer's legal first name as it appears on official documents"
+          },
+          {
+            "name": "middle_name",
+            "type": "string",
+            "length": 25,
+            "required": false,
+            "description": "Customer's middle name or middle initial"
+          },
+          {
+            "name": "last_name",
+            "type": "string",
+            "length": 25,
+            "required": true,
+            "description": "Customer's legal last name or surname"
+          },
+          {
+            "name": "address_line_1",
+            "type": "string",
+            "length": 50,
+            "required": true,
+            "description": "Primary address line containing street number and street name"
+          },
+          {
+            "name": "address_line_2",
+            "type": "string",
+            "length": 50,
+            "required": false,
+            "description": "Secondary address line for apartment, suite, or unit information"
+          },
+          {
+            "name": "address_line_3",
+            "type": "string",
+            "length": 50,
+            "required": false,
+            "description": "Third address line for additional address information"
+          },
+          {
+            "name": "state_code",
+            "type": "string",
+            "length": 2,
+            "required": true,
+            "description": "Two-character state or province code (standard postal abbreviation)"
+          },
+          {
+            "name": "country_code",
+            "type": "string",
+            "length": 3,
+            "required": true,
+            "description": "Three-character country code following ISO 3166-1 alpha-3 standard"
+          },
+          {
+            "name": "zip_code",
+            "type": "string",
+            "length": 10,
+            "required": true,
+            "description": "Postal code or ZIP code, may include ZIP+4 format"
+          },
+          {
+            "name": "phone_number_primary",
+            "type": "string",
+            "length": 15,
+            "required": false,
+            "description": "Primary phone number for customer contact, may include country code and area code"
+          },
+          {
+            "name": "phone_number_secondary",
+            "type": "string",
+            "length": 15,
+            "required": false,
+            "description": "Secondary or alternate phone number"
+          },
+          {
+            "name": "social_security_number",
+            "type": "numeric",
+            "length": 9,
+            "required": true,
+            "description": "Social Security Number for customer identification - sensitive data requiring encryption"
+          },
+          {
+            "name": "government_issued_id",
+            "type": "string",
+            "length": 20,
+            "required": false,
+            "description": "Government-issued identification number (driver's license, passport, or other official ID)"
+          },
+          {
+            "name": "date_of_birth",
+            "type": "date",
+            "length": 10,
+            "required": true,
+            "description": "Customer's date of birth in ISO 8601 format (YYYY-MM-DD), used for age verification and compliance"
+          },
+          {
+            "name": "eft_account_id",
+            "type": "string",
+            "length": 10,
+            "required": false,
+            "description": "Electronic Funds Transfer account identifier linking to external banking account for payments"
+          },
+          {
+            "name": "primary_cardholder_indicator",
+            "type": "string",
+            "length": 1,
+            "required": true,
+            "description": "Primary cardholder indicator flag ('Y' for primary, 'N' for secondary cardholder status)"
+          },
+          {
+            "name": "fico_credit_score",
+            "type": "numeric",
+            "length": 3,
+            "required": false,
+            "description": "FICO credit score for creditworthiness assessment, typically ranges 300-850, used for credit decisions"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "Account",
+            "relationship_type": "one-to-many",
+            "cardinality": "1:N",
+            "description": "A customer can have multiple credit card accounts"
+          },
+          {
+            "related_entity": "EFT_Account",
+            "relationship_type": "many-to-one",
+            "cardinality": "N:1",
+            "description": "Multiple customers may link to the same external banking account"
+          }
+        ]
+      }
+    ],
+    "business_rules": [
+      {
+        "id": "BR-CUST-001",
+        "name": "Customer ID Uniqueness",
+        "description": "Each customer must have a unique 9-digit numeric identifier",
+        "category": "Data Integrity",
+        "logic": "Customer ID serves as primary key and must be unique across all customer records",
+        "conditions": [
+          "Customer ID must be exactly 9 digits",
+          "Customer ID must be numeric",
+          "Customer ID must be unique in the system"
+        ],
+        "actions": [
+          "Reject duplicate customer IDs",
+          "Use customer ID for indexed access and record identification"
+        ]
+      },
+      {
+        "id": "BR-CUST-002",
+        "name": "Customer Record Completeness",
+        "description": "Mandatory customer fields must be populated for valid customer records",
+        "category": "Data Validation",
+        "logic": "Customer records require specific mandatory fields for business operations and compliance",
+        "conditions": [
+          "Customer ID is mandatory",
+          "First name is mandatory",
+          "Last name is mandatory",
+          "Primary address line is mandatory",
+          "State code is mandatory",
+          "Country code is mandatory",
+          "ZIP code is mandatory",
+          "Social Security Number is mandatory",
+          "Date of birth is mandatory",
+          "Primary cardholder indicator is mandatory"
+        ],
+        "actions": [
+          "Validate all mandatory fields are present before processing",
+          "Reject incomplete customer records"
+        ]
+      },
+      {
+        "id": "BR-CUST-003",
+        "name": "Address Format Compliance",
+        "description": "Customer addresses must follow standard postal formatting conventions",
+        "category": "Data Validation",
+        "logic": "Address components must conform to postal standards for mail delivery and geographic identification",
+        "conditions": [
+          "State code must be exactly 2 characters (standard postal abbreviation)",
+          "Country code must be exactly 3 characters (ISO 3166-1 alpha-3)",
+          "ZIP code supports up to 10 characters for ZIP+4 format",
+          "Address lines are left-justified and space-padded"
+        ],
+        "actions": [
+          "Validate state code against valid postal abbreviations",
+          "Validate country code against ISO 3166-1 alpha-3 standard",
+          "Format address fields consistently"
+        ]
+      },
+      {
+        "id": "BR-CUST-004",
+        "name": "Date of Birth Format",
+        "description": "Date of birth must follow ISO 8601 standard format",
+        "category": "Data Validation",
+        "logic": "Date of birth stored in YYYY-MM-DD format for age verification and compliance requirements",
+        "conditions": [
+          "Date format must be YYYY-MM-DD",
+          "Date must be a valid calendar date",
+          "Date must be in the past"
+        ],
+        "actions": [
+          "Validate date format compliance",
+          "Use for age verification calculations",
+          "Use for regulatory compliance checks"
+        ]
+      },
+      {
+        "id": "BR-CUST-005",
+        "name": "Primary Cardholder Classification",
+        "description": "Customer must be designated as primary or secondary cardholder",
+        "category": "Business Logic",
+        "logic": "Primary cardholder indicator determines customer's role and responsibilities for the account",
+        "conditions": [
+          "Primary cardholder indicator must be 'Y' or 'N'",
+          "Indicator determines account relationship status"
+        ],
+        "actions": [
+          "Set 'Y' for primary cardholder",
+          "Set 'N' for secondary or authorized user",
+          "Use indicator for account management decisions"
+        ]
+      },
+      {
+        "id": "BR-CUST-006",
+        "name": "FICO Credit Score Range",
+        "description": "Credit scores must fall within standard FICO score range when provided",
+        "category": "Data Validation",
+        "logic": "FICO credit scores typically range from 300 to 850 and are used for creditworthiness assessment",
+        "conditions": [
+          "FICO score is optional",
+          "When provided, score typically ranges 300-850",
+          "Score is 3-digit numeric value"
+        ],
+        "actions": [
+          "Use credit score for credit decisions",
+          "Validate score falls within expected range when provided"
+        ]
+      },
+      {
+        "id": "BR-CUST-007",
+        "name": "Sensitive Data Protection",
+        "description": "Personally identifiable and sensitive financial information requires special handling",
+        "category": "Security",
+        "logic": "Social Security Numbers and other sensitive data require encryption and access controls",
+        "conditions": [
+          "Social Security Number is sensitive data",
+          "Government-issued ID is sensitive data",
+          "Date of birth is personal data",
+          "FICO score is financial data"
+        ],
+        "actions": [
+          "Encrypt sensitive data at rest and in transit",
+          "Implement access controls for sensitive fields",
+          "Audit access to sensitive customer information",
+          "Comply with data protection regulations"
+        ]
+      },
+      {
+        "id": "BR-CUST-008",
+        "name": "Sequential Record Processing",
+        "description": "Customer records are processed sequentially in customer ID order",
+        "category": "Processing Logic",
+        "logic": "System reads customer records sequentially by customer ID for batch reporting and data extraction",
+        "conditions": [
+          "Records are accessed in customer ID ascending order",
+          "All records are processed until end of data",
+          "Processing continues unless error occurs"
+        ],
+        "actions": [
+          "Read records sequentially by primary key",
+          "Display each customer record",
+          "Continue until all records processed"
+        ]
+      }
+    ],
+    "validations": [
+      {
+        "field": "customer_id",
+        "rule": "Must be exactly 9 numeric digits",
+        "error_message": "Invalid customer ID format",
+        "severity": "error"
+      },
+      {
+        "field": "customer_id",
+        "rule": "Must be unique across all customer records",
+        "error_message": "Duplicate customer ID",
+        "severity": "error"
+      },
+      {
+        "field": "first_name",
+        "rule": "Required field, cannot be empty",
+        "error_message": "First name is required",
+        "severity": "error"
+      },
+      {
+        "field": "last_name",
+        "rule": "Required field, cannot be empty",
+        "error_message": "Last name is required",
+        "severity": "error"
+      },
+      {
+        "field": "address_line_1",
+        "rule": "Required field, cannot be empty",
+        "error_message": "Primary address is required",
+        "severity": "error"
+      },
+      {
+        "field": "state_code",
+        "rule": "Must be exactly 2 characters, standard postal abbreviation",
+        "error_message": "Invalid state code format",
+        "severity": "error"
+      },
+      {
+        "field": "country_code",
+        "rule": "Must be exactly 3 characters, ISO 3166-1 alpha-3 format",
+        "error_message": "Invalid country code format",
+        "severity": "error"
+      },
+      {
+        "field": "zip_code",
+        "rule": "Required field, up to 10 characters for ZIP+4 format",
+        "error_message": "Invalid ZIP code",
+        "severity": "error"
+      },
+      {
+        "field": "social_security_number",
+        "rule": "Must be exactly 9 numeric digits",
+        "error_message": "Invalid Social Security Number format",
+        "severity": "error"
+      },
+      {
+        "field": "date_of_birth",
+        "rule": "Must be in YYYY-MM-DD format and a valid past date",
+        "error_message": "Invalid date of birth",
+        "severity": "error"
+      },
+      {
+        "field": "primary_cardholder_indicator",
+        "rule": "Must be 'Y' or 'N'",
+        "error_message": "Invalid primary cardholder indicator",
+        "severity": "error"
+      },
+      {
+        "field": "fico_credit_score",
+        "rule": "When provided, must be 3-digit numeric value typically between 300-850",
+        "error_message": "Invalid FICO credit score",
+        "severity": "warning"
+      },
+      {
+        "field": "phone_number_primary",
+        "rule": "Up to 15 characters, may include country and area codes",
+        "error_message": "Invalid phone number format",
+        "severity": "warning"
+      },
+      {
+        "field": "phone_number_secondary",
+        "rule": "Up to 15 characters, may include country and area codes",
+        "error_message": "Invalid phone number format",
+        "severity": "warning"
+      }
+    ],
+    "calculations": [],
+    "workflows": [
+      {
+        "name": "Customer Data Extraction and Display",
+        "description": "Sequential batch process to read all customer records from the master file and display them for reporting, auditing, or verification purposes",
+        "steps": [
+          {
+            "step_number": 1,
+            "action": "Initialize program and display start message",
+            "conditions": [],
+            "next_step": "2"
+          },
+          {
+            "step_number": 2,
+            "action": "Open customer data source for reading",
+            "conditions": [
+              "Customer data source must be accessible",
+              "System must have read permissions"
+            ],
+            "next_step": "3"
+          },
+          {
+            "step_number": 3,
+            "action": "Check if more customer records exist to process",
+            "conditions": [
+              "End-of-data flag is 'N' (more records available)"
+            ],
+            "next_step": "4"
+          },
+          {
+            "step_number": 4,
+            "action": "Read next customer record from data source",
+            "conditions": [
+              "Customer data source is open",
+              "More records available"
+            ],
+            "next_step": "5"
+          },
+          {
+            "step_number": 5,
+            "action": "Evaluate read operation result",
+            "conditions": [
+              "If successful: continue to step 6",
+              "If end-of-data: set end-of-data flag and continue to step 7",
+              "If error: display error details and terminate abnormally"
+            ],
+            "next_step": "6 or 7 or ERROR"
+          },
+          {
+            "step_number": 6,
+            "action": "Display complete customer record information",
+            "conditions": [
+              "Record was successfully read"
+            ],
+            "next_step": "3"
+          },
+          {
+            "step_number": 7,
+            "action": "Close customer data source",
+            "conditions": [
+              "All records have been processed",
+              "Customer data source is still open"
+            ],
+            "next_step": "8"
+          },
+          {
+            "step_number": 8,
+            "action": "Display program completion message and terminate normally",
+            "conditions": [],
+            "next_step": "END"
+          }
+        ]
+      }
+    ],
+    "integrations": [
+      {
+        "name": "Customer Master Data Repository",
+        "type": "data_source",
+        "purpose": "Primary source of customer information for the CardDemo application",
+        "data_exchanged": [
+          "Complete customer records including personal, contact, and financial information"
+        ],
+        "trigger_conditions": [
+          "Batch processing job execution",
+          "Administrative data extraction request",
+          "Audit or compliance reporting requirement"
+        ]
+      }
+    ],
+    "security": {
+      "roles": [
+        "System Administrator",
+        "Data Auditor",
+        "Operations Staff"
+      ],
+      "permissions": [
+        {
+          "role": "System Administrator",
+          "resource": "Customer Master File",
+          "actions": [
+            "read",
+            "execute_batch_extraction"
+          ]
+        },
+        {
+          "role": "Data Auditor",
+          "resource": "Customer Master File",
+          "actions": [
+            "read",
+            "execute_batch_extraction"
+          ]
+        },
+        {
+          "role": "Operations Staff",
+          "resource": "Customer Master File",
+          "actions": [
+            "execute_batch_extraction"
+          ]
+        }
+      ],
+      "authentication_requirements": [
+        "User must be authenticated to system",
+        "User must have appropriate role authorization",
+        "Access to sensitive fields (SSN, Government ID) requires additional authorization",
+        "All access should be logged for audit purposes"
+      ]
+    },
+    "error_handling": [
+      {
+        "error_code": "CUST-OPEN-ERROR",
+        "condition": "Unable to open customer data source",
+        "business_impact": "Cannot access customer information, batch job fails",
+        "suggested_action": "Verify data source availability and access permissions, check system resources, retry operation"
+      },
+      {
+        "error_code": "CUST-READ-ERROR",
+        "condition": "Error reading customer record from data source",
+        "business_impact": "Incomplete customer data extraction, potential data integrity issues",
+        "suggested_action": "Check data source integrity, verify record format compatibility, investigate data corruption"
+      },
+      {
+        "error_code": "CUST-CLOSE-ERROR",
+        "condition": "Error closing customer data source after processing",
+        "business_impact": "Data source may remain locked, resource cleanup incomplete",
+        "suggested_action": "Verify system resources, check for concurrent access issues, manually release resources if needed"
+      },
+      {
+        "error_code": "CUST-EOF",
+        "condition": "End of customer data reached during sequential processing",
+        "business_impact": "Normal completion condition, all records have been processed",
+        "suggested_action": "Continue with normal program termination and cleanup"
+      }
+    ]
+  },
+  "frontend": {
+    "screens": [],
+    "reports": [
+      {
+        "name": "Complete Customer Data Listing",
+        "description": "Sequential display of all customer records from the customer master file for administrative review, auditing, and verification",
+        "type": "batch_report",
+        "data_sources": [
+          "Customer Master File"
+        ],
+        "filters": [],
+        "columns": [
+          {
+            "name": "Customer ID",
+            "data_field": "customer_id",
+            "format": "9-digit numeric",
+            "aggregation": null
+          },
+          {
+            "name": "First Name",
+            "data_field": "first_name",
+            "format": "text (25 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "Middle Name",
+            "data_field": "middle_name",
+            "format": "text (25 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "Last Name",
+            "data_field": "last_name",
+            "format": "text (25 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "Address Line 1",
+            "data_field": "address_line_1",
+            "format": "text (50 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "Address Line 2",
+            "data_field": "address_line_2",
+            "format": "text (50 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "Address Line 3",
+            "data_field": "address_line_3",
+            "format": "text (50 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "State Code",
+            "data_field": "state_code",
+            "format": "text (2 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "Country Code",
+            "data_field": "country_code",
+            "format": "text (3 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "ZIP Code",
+            "data_field": "zip_code",
+            "format": "text (10 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "Primary Phone",
+            "data_field": "phone_number_primary",
+            "format": "text (15 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "Secondary Phone",
+            "data_field": "phone_number_secondary",
+            "format": "text (15 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "SSN",
+            "data_field": "social_security_number",
+            "format": "9-digit numeric (sensitive)",
+            "aggregation": null
+          },
+          {
+            "name": "Government ID",
+            "data_field": "government_issued_id",
+            "format": "text (20 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "Date of Birth",
+            "data_field": "date_of_birth",
+            "format": "YYYY-MM-DD",
+            "aggregation": null
+          },
+          {
+            "name": "EFT Account ID",
+            "data_field": "eft_account_id",
+            "format": "text (10 chars)",
+            "aggregation": null
+          },
+          {
+            "name": "Primary Cardholder",
+            "data_field": "primary_cardholder_indicator",
+            "format": "Y/N",
+            "aggregation": null
+          },
+          {
+            "name": "FICO Score",
+            "data_field": "fico_credit_score",
+            "format": "3-digit numeric",
+            "aggregation": null
+          }
+        ],
+        "sorting": [
+          "Customer ID ascending (sequential)"
+        ],
+        "grouping": []
+      }
+    ],
+    "navigation_flow": [],
+    "user_messages": [
+      {
+        "code": "MSG-START",
+        "type": "informational",
+        "message": "START OF EXECUTION OF PROGRAM CBCUS01C",
+        "context": "Displayed at program initialization to indicate processing has begun"
+      },
+      {
+        "code": "MSG-END",
+        "type": "informational",
+        "message": "END OF EXECUTION OF PROGRAM CBCUS01C",
+        "context": "Displayed at program completion to indicate successful processing"
+      },
+      {
+        "code": "ERR-OPEN",
+        "type": "error",
+        "message": "ERROR OPENING CUSTFILE",
+        "context": "Displayed when customer data source cannot be opened, followed by detailed status information"
+      },
+      {
+        "code": "ERR-READ",
+        "type": "error",
+        "message": "ERROR READING CUSTOMER FILE",
+        "context": "Displayed when error occurs reading customer record, followed by detailed status information"
+      },
+      {
+        "code": "ERR-CLOSE",
+        "type": "error",
+        "message": "ERROR CLOSING CUSTOMER FILE",
+        "context": "Displayed when error occurs closing customer data source, followed by detailed status information"
+      },
+      {
+        "code": "ERR-ABEND",
+        "type": "error",
+        "message": "ABENDING PROGRAM",
+        "context": "Displayed when program must terminate abnormally due to critical error"
+      },
+      {
+        "code": "ERR-STATUS",
+        "type": "error",
+        "message": "FILE STATUS IS: [status_code]",
+        "context": "Displays detailed status code information for troubleshooting file operation errors"
+      }
+    ]
+  },
+  "data_flows": [
+    {
+      "name": "Customer Data Extraction Flow",
+      "description": "Sequential extraction of customer records from master file for display and reporting",
+      "source": "Customer Master File",
+      "destination": "Console Output / Report",
+      "data_elements": [
+        "Complete customer records with all attributes"
+      ],
+      "transformations": [
+        "Sequential read from indexed data source",
+        "Format customer data for display output",
+        "Convert internal data representations to readable format"
+      ]
+    }
+  ],
+  "business_constraints": [
+    {
+      "type": "data_integrity",
+      "description": "Customer ID must be unique and serve as primary key for all customer operations",
+      "impact": "Ensures accurate customer identification and prevents duplicate customer records"
+    },
+    {
+      "type": "data_completeness",
+      "description": "Mandatory customer fields must be populated for valid customer records",
+      "impact": "Ensures sufficient customer information for business operations and regulatory compliance"
+    },
+    {
+      "type": "data_security",
+      "description": "Sensitive personal and financial information requires encryption and access controls",
+      "impact": "Protects customer privacy and ensures compliance with data protection regulations (GDPR, CCPA, etc.)"
+    },
+    {
+      "type": "data_format",
+      "description": "Customer data must follow standardized formats (date formats, postal codes, country codes)",
+      "impact": "Ensures data consistency, interoperability, and compliance with international standards"
+    },
+    {
+      "type": "processing_mode",
+      "description": "Program operates as batch process, not interactive transaction",
+      "impact": "Designed for bulk data extraction and reporting rather than real-time customer updates"
+    },
+    {
+      "type": "audit_trail",
+      "description": "Access to customer data should be logged for compliance and security auditing",
+      "impact": "Enables tracking of who accessed sensitive customer information and when"
+    }
+  ]
+}

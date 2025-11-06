@@ -1,301 +1,309 @@
-# Spring Boot Application Archetype
+# Account and Customer Management System
 
-A comprehensive Spring Boot 3.5.5 archetype with Java 21, PostgreSQL, JPA, Flyway migrations, and clean architecture patterns.
+A comprehensive Spring Boot application for managing accounts, customers, card cross-references, and transactions.
 
-## 📋 Table of Contents
+## Overview
 
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Architecture Guide](#architecture-guide)
-- [Development Guidelines](#development-guidelines)
-- [API Examples](#api-examples)
-- [Database Migrations](#database-migrations)
-- [Configuration](#configuration)
-- [Best Practices](#best-practices)
-- [Contributing](#contributing)
+This system provides RESTful APIs for:
+- **Customer Management**: Create, read, update, and delete customer records with demographic information
+- **Account Management**: Manage account balances, credit limits, dates, and status information
+- **Card Cross-Reference Management**: Maintain relationships between card numbers, customers, and accounts
+- **Transaction Management**: Process and track credit card transactions
 
-## 🚀 Overview
+## Features
 
-This archetype provides a ready-to-use Spring Boot application structure that follows industry best practices and clean architecture principles. It's designed to help developers quickly set up new projects with a solid foundation.
+- ✅ RESTful API design following best practices
+- ✅ Comprehensive validation and error handling
+- ✅ Database migrations with Flyway
+- ✅ OpenAPI/Swagger documentation
+- ✅ Actuator endpoints for monitoring
+- ✅ Prometheus metrics integration
+- ✅ Structured logging
+- ✅ Multi-environment configuration (dev, prod)
 
-## ✨ Features
+## Technology Stack
 
-- **Spring Boot 3.5.5** with Java 21
-- **PostgreSQL** database with JPA/Hibernate
-- **Flyway** database migrations
-- **Lombok** for reducing boilerplate code
-- **Spring Boot Actuator** for monitoring
-- **Layered Architecture** (Controller → Service → Repository → Entity)
-- **DTO Pattern** for API contracts
-- **Comprehensive Examples** for each layer
-- **Production-Ready Configuration**
+- **Java**: 17
+- **Spring Boot**: 3.2.0
+- **Database**: MySQL 8.0
+- **Build Tool**: Maven
+- **API Documentation**: SpringDoc OpenAPI 3
+- **Database Migration**: Flyway
+- **Monitoring**: Spring Actuator + Prometheus
 
-## 📁 Project Structure
+## Prerequisites
 
-```
-src/
-├── main/
-│   ├── java/com/example/demo/
-│   │   ├── DemoApplication.java          # Main application class
-│   │   ├── controller/                   # REST Controllers
-│   │   │   └── UserController.java       # Example controller
-│   │   ├── dto/                         # Data Transfer Objects
-│   │   │   ├── CreateUserRequest.java    # Request DTO
-│   │   │   ├── UpdateUserRequest.java    # Update DTO
-│   │   │   └── UserResponse.java         # Response DTO
-│   │   ├── entity/                      # JPA Entities
-│   │   │   ├── User.java                # Example entity
-│   │   │   └── Order.java               # Related entity example
-│   │   ├── enums/                       # Enum definitions
-│   │   │   ├── UserStatus.java          # User status enum
-│   │   │   └── OrderStatus.java         # Order status enum
-│   │   ├── repository/                  # Data Access Layer
-│   │   │   └── UserRepository.java      # Example repository
-│   │   └── service/                     # Business Logic Layer
-│   │       └── UserService.java        # Example service
-│   └── resources/
-│       ├── application.properties       # Application configuration
-│       └── db/migration/               # Flyway migrations
-│           ├── V1__Create_users_table.sql
-│           ├── V2__Add_user_search_indexes.sql
-│           └── V3__Create_orders_table.sql
-└── test/                               # Test classes
-```
+- Java 17 or higher
+- Maven 3.8+
+- MySQL 8.0+
+- Docker (optional, for containerized deployment)
 
-## 🏁 Getting Started
+## Getting Started
 
-### Quick Start
-1. **Clone or use this archetype**
-2. **Configure your database** in `application.properties`
-3. **Run the application**: `./mvnw spring-boot:run`
-4. **Test the API**: `curl http://localhost:8080/api/users`
-
-For detailed setup instructions, see [QUICKSTART.md](QUICKSTART.md).
-
-## 🏗️ Architecture Guide
-
-This application follows a **layered architecture** pattern:
-
-### 1. **Controller Layer** (`/controller`)
-- Handles HTTP requests and responses
-- Validates input data
-- Maps DTOs to/from service layer
-- Returns appropriate HTTP status codes
-
-### 2. **Service Layer** (`/service`)
-- Contains business logic
-- Orchestrates operations between repositories
-- Handles transactions
-- Performs data transformations
-
-### 3. **Repository Layer** (`/repository`)
-- Data access abstraction
-- Database operations through JPA
-- Custom queries when needed
-
-### 4. **Entity Layer** (`/entity`)
-- JPA entity definitions
-- Database table mappings
-- Relationships between entities
-
-### 5. **DTO Layer** (`/dto`)
-- API contracts (Request/Response objects)
-- Input validation
-- Data transfer between layers
-
-### 6. **Enums** (`/enums`)
-- Type-safe constants
-- Business domain values
-- Status definitions
-
-For detailed architecture information, see [ARCHETYPE.md](ARCHETYPE.md).
-
-## 🛠️ Development Guidelines
-
-### Creating a New Feature
-
-Follow this order when implementing new features:
-
-1. **Entity** → Define your data model
-2. **Migration** → Create database schema
-3. **Repository** → Data access interface
-4. **DTOs** → API contracts
-5. **Service** → Business logic
-6. **Controller** → REST endpoints
-7. **Tests** → Comprehensive testing
-
-### Example Implementation
-
-```java
-// 1. Entity
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String name;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
-}
-
-// 2. Repository
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
-}
-
-// 3. Service
-@Service
-@RequiredArgsConstructor
-public class ProductService {
-    private final ProductRepository productRepository;
-    
-    public ProductResponse createProduct(CreateProductRequest request) {
-        // Business logic here
-    }
-}
-
-// 4. Controller
-@RestController
-@RequestMapping("/api/products")
-public class ProductController {
-    private final ProductService productService;
-    
-    @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody CreateProductRequest request) {
-        // Controller logic here
-    }
-}
-```
-
-## 📝 API Examples
-
-### User Management APIs
+### 1. Clone the Repository
 
 ```bash
-# Create User
-POST /api/users
-{
-  "firstName": "John",
-  "lastName": "Doe", 
-  "email": "john.doe@example.com",
-  "phoneNumber": "555-1234"
-}
-
-# Get All Users (with pagination)
-GET /api/users?page=0&size=10&sort=createdAt,desc
-
-# Get User by ID
-GET /api/users/1
-
-# Update User
-PUT /api/users/1
-{
-  "firstName": "Jane",
-  "phoneNumber": "555-5678"
-}
-
-# Delete User
-DELETE /api/users/1
-
-# Search Users
-GET /api/users/search?q=john
-
-# Get Recent Users
-GET /api/users/recent
+git clone <repository-url>
+cd account-customer-management
 ```
 
-## 🗃️ Database Migrations
+### 2. Configure Database
 
-Flyway migrations follow this naming convention:
-- `V{version}__{description}.sql`
-- Example: `V1__Create_users_table.sql`
+Update `src/main/resources/application.yml` with your database credentials:
 
-### Migration Examples
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/account_customer_db
+    username: your_username
+    password: your_password
+```
 
+Or set environment variables:
+
+```bash
+export DB_USERNAME=your_username
+export DB_PASSWORD=your_password
+```
+
+### 3. Build the Application
+
+```bash
+mvn clean install
+```
+
+### 4. Run Database Migrations
+
+```bash
+mvn flyway:migrate
+```
+
+### 5. Run the Application
+
+```bash
+mvn spring-boot:run
+```
+
+Or run with a specific profile:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+The application will start on `http://localhost:8080`
+
+## API Documentation
+
+Once the application is running, access the API documentation at:
+
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI JSON**: http://localhost:8080/api-docs
+
+## API Endpoints
+
+### Customer Management
+
+- `GET /api/customers` - Get all customers (paginated)
+- `GET /api/customers/{customerId}` - Get customer by ID
+- `POST /api/customers` - Create new customer
+- `PUT /api/customers/{customerId}` - Update customer
+- `DELETE /api/customers/{customerId}` - Delete customer
+
+### Account Management
+
+- `GET /api/accounts` - Get all accounts (paginated)
+- `GET /api/accounts/{accountId}` - Get account by ID
+- `POST /api/accounts` - Create new account
+- `PUT /api/accounts/{accountId}` - Update account
+- `DELETE /api/accounts/{accountId}` - Delete account
+
+### Card Cross-Reference Management
+
+- `GET /api/card-cross-references` - Get all card cross-references (paginated)
+- `GET /api/card-cross-references/{cardNumber}` - Get by card number
+- `GET /api/card-cross-references/customer/{customerId}` - Get by customer ID
+- `GET /api/card-cross-references/account/{accountId}` - Get by account ID
+- `POST /api/card-cross-references` - Create new card cross-reference
+- `PUT /api/card-cross-references/{cardNumber}` - Update card cross-reference
+- `DELETE /api/card-cross-references/{cardNumber}` - Delete card cross-reference
+
+### Transaction Management
+
+- `GET /api/transactions` - Get all transactions (paginated)
+- `GET /api/transactions/{cardNumber}/{transactionId}` - Get by composite key
+- `GET /api/transactions/card/{cardNumber}` - Get by card number
+- `POST /api/transactions` - Create new transaction
+- `PUT /api/transactions/{cardNumber}/{transactionId}` - Update transaction
+- `DELETE /api/transactions/{cardNumber}/{transactionId}` - Delete transaction
+
+## Monitoring
+
+### Health Check
+
+```bash
+curl http://localhost:8080/actuator/health
+```
+
+### Metrics
+
+```bash
+curl http://localhost:8080/actuator/metrics
+```
+
+### Prometheus Metrics
+
+```bash
+curl http://localhost:8080/actuator/prometheus
+```
+
+## Docker Deployment
+
+### Build Docker Image
+
+```bash
+docker build -t account-customer-management:1.0.0 .
+```
+
+### Run with Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+This will start:
+- Application container
+- MySQL database container
+
+## Configuration Profiles
+
+### Development Profile
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+Features:
+- Detailed logging
+- SQL query logging
+- H2 console enabled
+
+### Production Profile
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+Features:
+- Optimized logging
+- Enhanced security
+- Performance tuning
+
+## Database Schema
+
+### Customers Table
+- `customer_id` (BIGINT, PK): 9-digit numeric customer identifier
+- `customer_data` (VARCHAR(491)): Complete customer profile
+- `created_at`, `updated_at`: Audit timestamps
+
+### Accounts Table
+- `account_id` (BIGINT, PK): 11-digit numeric account identifier
+- `account_data` (VARCHAR(289)): Account details
+- `customer_id` (BIGINT, FK): Reference to customer
+- `created_at`, `updated_at`: Audit timestamps
+
+### Card Cross-References Table
+- `card_number` (VARCHAR(16), PK): 16-character card number
+- `cross_reference_data` (VARCHAR(34)): Relationship data
+- `customer_id` (BIGINT, FK): Reference to customer
+- `account_id` (BIGINT, FK): Reference to account
+- `created_at`, `updated_at`: Audit timestamps
+
+### Transactions Table
+- `card_number` (VARCHAR(16), PK): Card number
+- `transaction_id` (VARCHAR(16), PK): Transaction identifier
+- `transaction_data` (VARCHAR(318)): Transaction details
+- `created_at`, `updated_at`: Audit timestamps
+
+## Business Rules
+
+### Customer Validation
+- Customer ID must be exactly 9 numeric digits
+- Customer data is required and cannot exceed 491 characters
+
+### Account Validation
+- Account ID must be exactly 11 numeric digits
+- Account data is required and cannot exceed 289 characters
+- Must be associated with a valid customer
+
+### Card Cross-Reference Validation
+- Card number must be exactly 16 characters
+- Must link to valid customer and account
+
+### Transaction Validation
+- Card number must be exactly 16 characters
+- Transaction ID must be exactly 16 characters
+- Transaction data cannot exceed 318 characters
+
+## Testing
+
+### Run Unit Tests
+
+```bash
+mvn test
+```
+
+### Run Integration Tests
+
+```bash
+mvn verify
+```
+
+## Troubleshooting
+
+### Database Connection Issues
+
+1. Verify MySQL is running:
+```bash
+mysql -u root -p
+```
+
+2. Check database exists:
 ```sql
--- V1__Create_users_table.sql
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+SHOW DATABASES;
 ```
 
-## ⚙️ Configuration
+3. Verify credentials in `application.yml`
 
-### Database Configuration
-```properties
-# PostgreSQL Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_database
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+### Port Already in Use
 
-# JPA Configuration
-spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.show-sql=false
-
-# Flyway Configuration
-spring.flyway.locations=classpath:db/migration
-spring.flyway.baseline-on-migrate=true
+Change the port in `application.yml`:
+```yaml
+server:
+  port: 8081
 ```
 
-### Development vs Production
-- **Development**: Use `spring.jpa.show-sql=true` for SQL logging
-- **Production**: Set `spring.jpa.show-sql=false` and configure proper logging levels
+## Contributing
 
-## 📚 Best Practices
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-### Code Organization
-- ✅ Follow package-by-layer structure
-- ✅ Use consistent naming conventions
-- ✅ Implement proper exception handling
-- ✅ Add comprehensive logging
-- ✅ Write meaningful tests
+## License
 
-### Database
-- ✅ Always use migrations for schema changes
-- ✅ Add appropriate indexes for performance
-- ✅ Use proper constraints and validations
-- ✅ Document complex queries
+This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
 
-### API Design
-- ✅ Use proper HTTP status codes
-- ✅ Implement pagination for collections
-- ✅ Validate input data
-- ✅ Return consistent response formats
-- ✅ Handle errors gracefully
+## Support
 
-### Security
-- ✅ Never expose entities directly in APIs
-- ✅ Use DTOs for data transfer
-- ✅ Validate all inputs
-- ✅ Implement proper authentication/authorization
-- ✅ Log security events
+For issues and questions:
+- Create an issue in the repository
+- Contact: support@example.com
 
-## 🤝 Contributing
+## Version History
 
-1. Follow the established architecture patterns
-2. Add tests for new features
-3. Update documentation
-4. Follow the coding standards
-5. Create meaningful commit messages
-
----
-
-## 📄 Additional Documentation
-
-- [Detailed Architecture Guide](ARCHETYPE.md)
-- [Quick Start Guide](QUICKSTART.md)
-- [API Documentation](http://localhost:8080/actuator/mappings) (when running)
-
-This archetype provides everything you need to build robust, scalable Spring Boot applications. Happy coding! 🚀
+- **1.0.0** (2024-01-15): Initial release
+  - Customer management
+  - Account management
+  - Card cross-reference management
+  - Transaction management

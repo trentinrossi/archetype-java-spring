@@ -1,0 +1,948 @@
+{
+  "application_metadata": {
+    "name": "CBSTM03B - File Processing Subroutine",
+    "description": "Centralized file handling utility that provides standardized operations for reading and managing transaction files, card cross-reference files, customer files, and account files. Acts as a file access layer for statement creation and report generation programs.",
+    "domain": "Financial Services - Credit Card Transaction Processing"
+  },
+  "backend": {
+    "business_entities": [
+      {
+        "name": "Transaction",
+        "description": "Credit card transaction records containing transaction details, amounts, dates, and status information",
+        "attributes": [
+          {
+            "name": "card_number",
+            "type": "string",
+            "length": 16,
+            "required": true,
+            "description": "Card number portion of composite primary key"
+          },
+          {
+            "name": "transaction_id",
+            "type": "string",
+            "length": 16,
+            "required": true,
+            "description": "Unique transaction identifier portion of composite primary key"
+          },
+          {
+            "name": "transaction_data",
+            "type": "string",
+            "length": 318,
+            "required": true,
+            "description": "Complete transaction details including amounts, dates, merchant information, and status"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "Card",
+            "relationship_type": "belongs_to",
+            "cardinality": "many-to-one"
+          }
+        ]
+      },
+      {
+        "name": "CardCrossReference",
+        "description": "Maintains relationships between card numbers, customer identifiers, and account identifiers",
+        "attributes": [
+          {
+            "name": "card_number",
+            "type": "string",
+            "length": 16,
+            "required": true,
+            "description": "Primary key - card number linking to customer and account"
+          },
+          {
+            "name": "cross_reference_data",
+            "type": "string",
+            "length": 34,
+            "required": true,
+            "description": "Contains customer ID and account ID relationships"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "Customer",
+            "relationship_type": "links_to",
+            "cardinality": "many-to-one"
+          },
+          {
+            "related_entity": "Account",
+            "relationship_type": "links_to",
+            "cardinality": "many-to-one"
+          }
+        ]
+      },
+      {
+        "name": "Customer",
+        "description": "Customer master data including demographic information, addresses, phone numbers, SSN, and credit scores",
+        "attributes": [
+          {
+            "name": "customer_id",
+            "type": "string",
+            "length": 9,
+            "required": true,
+            "description": "Primary key - unique customer identification number in numeric format"
+          },
+          {
+            "name": "customer_data",
+            "type": "string",
+            "length": 491,
+            "required": true,
+            "description": "Complete customer profile including demographics, addresses, contact information, SSN, and credit scores"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "Account",
+            "relationship_type": "has_many",
+            "cardinality": "one-to-many"
+          },
+          {
+            "related_entity": "CardCrossReference",
+            "relationship_type": "has_many",
+            "cardinality": "one-to-many"
+          }
+        ]
+      },
+      {
+        "name": "Account",
+        "description": "Account master data containing account balances, credit limits, dates, and status information",
+        "attributes": [
+          {
+            "name": "account_id",
+            "type": "numeric",
+            "length": 11,
+            "required": true,
+            "description": "Primary key - unique account identification number"
+          },
+          {
+            "name": "account_data",
+            "type": "string",
+            "length": 289,
+            "required": true,
+            "description": "Account balance, credit limit, dates, and status information with proper decimal handling"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "Customer",
+            "relationship_type": "belongs_to",
+            "cardinality": "many-to-one"
+          },
+          {
+            "related_entity": "CardCrossReference",
+            "relationship_type": "has_many",
+            "cardinality": "one-to-many"
+          }
+        ]
+      }
+    ],
+    "business_rules": [
+      {
+        "id": "BR001",
+        "name": "File Operation Dispatcher",
+        "description": "Routes file processing requests to appropriate file handling routines based on file identifier",
+        "category": "Data Access Control",
+        "logic": "Evaluates incoming file designation and routes to specific file processing section. Supports TRNXFILE, XREFFILE, CUSTFILE, and ACCTFILE. Returns immediately if unsupported file identifier provided.",
+        "conditions": [
+          "File designation must exactly match 'TRNXFILE', 'XREFFILE', 'CUSTFILE', or 'ACCTFILE'",
+          "File designation comparison is case-sensitive",
+          "Operation code must be valid for the specified file type"
+        ],
+        "actions": [
+          "Route to transaction file processing for TRNXFILE",
+          "Route to cross-reference file processing for XREFFILE",
+          "Route to customer file processing for CUSTFILE",
+          "Route to account file processing for ACCTFILE",
+          "Return immediately without processing for invalid file designations"
+        ]
+      },
+      {
+        "id": "BR002",
+        "name": "Sequential Access Pattern for Transaction Files",
+        "description": "Transaction files are accessed sequentially in composite key order (card number + transaction ID)",
+        "category": "Data Access Pattern",
+        "logic": "Transaction records are read sequentially based on composite key ordering. Supports open, sequential read, and close operations only.",
+        "conditions": [
+          "File must be opened before read operations",
+          "Records are retrieved in ascending composite key order",
+          "Only input (read-only) access is permitted"
+        ],
+        "actions": [
+          "Open transaction file for input access",
+          "Read next sequential record into data exchange area",
+          "Close transaction file and release resources",
+          "Return file status after each operation"
+        ]
+      },
+      {
+        "id": "BR003",
+        "name": "Sequential Access Pattern for Cross-Reference Files",
+        "description": "Card cross-reference files are accessed sequentially by card number to retrieve customer and account relationships",
+        "category": "Data Access Pattern",
+        "logic": "Cross-reference records are read sequentially by card number. Supports open, sequential read, and close operations only.",
+        "conditions": [
+          "File must be opened before read operations",
+          "Records are retrieved in ascending card number order",
+          "Only input (read-only) access is permitted"
+        ],
+        "actions": [
+          "Open cross-reference file for input access",
+          "Read next sequential record into data exchange area",
+          "Close cross-reference file and release resources",
+          "Return file status after each operation"
+        ]
+      },
+      {
+        "id": "BR004",
+        "name": "Random Access Pattern for Customer Files",
+        "description": "Customer files are accessed directly by customer ID for efficient record retrieval",
+        "category": "Data Access Pattern",
+        "logic": "Customer records are retrieved directly using customer ID as key. Supports open, keyed read, and close operations.",
+        "conditions": [
+          "File must be opened before read operations",
+          "Customer ID must be provided in key field with valid length",
+          "Key length must be positive and not exceed 25 characters",
+          "Only input (read-only) access is permitted"
+        ],
+        "actions": [
+          "Open customer file for random input access",
+          "Extract customer ID from key field using specified length",
+          "Read customer record directly by customer ID",
+          "Move complete customer record to data exchange area",
+          "Close customer file and release resources",
+          "Return file status after each operation"
+        ]
+      },
+      {
+        "id": "BR005",
+        "name": "Random Access Pattern for Account Files",
+        "description": "Account files are accessed directly by account ID for immediate account information retrieval",
+        "category": "Data Access Pattern",
+        "logic": "Account records are retrieved directly using account ID as key. Supports open, keyed read, and close operations.",
+        "conditions": [
+          "File must be opened before read operations",
+          "Account ID must be provided in key field with valid length",
+          "Key length must be positive and not exceed 25 characters",
+          "Account ID must be numeric format",
+          "Only input (read-only) access is permitted"
+        ],
+        "actions": [
+          "Open account file for random input access",
+          "Extract account ID from key field using specified length",
+          "Read account record directly by account ID",
+          "Move complete account record to data exchange area",
+          "Close account file and release resources",
+          "Return file status after each operation"
+        ]
+      },
+      {
+        "id": "BR006",
+        "name": "File Status Reporting",
+        "description": "All file operations return standardized two-character status codes following COBOL conventions",
+        "category": "Error Handling",
+        "logic": "After every file operation, capture file status and return to calling program for error detection and handling",
+        "conditions": [
+          "Status code must be returned after every operation",
+          "Status follows standard COBOL file status format",
+          "Each file type maintains separate status tracking"
+        ],
+        "actions": [
+          "Capture file status after each operation",
+          "Move status to return code field in linkage area",
+          "Return control to calling program with status information"
+        ]
+      },
+      {
+        "id": "BR007",
+        "name": "Operation Code Validation",
+        "description": "Validates and processes operation codes to determine which file operation to perform",
+        "category": "Operation Control",
+        "logic": "Evaluates operation code and executes corresponding file operation. Supported operations vary by file type.",
+        "conditions": [
+          "Operation code must be single character",
+          "Sequential files support: O (Open), R (Read), C (Close)",
+          "Random access files support: O (Open), K (Keyed Read), C (Close)",
+          "Unsupported operations result in no processing but status is still returned"
+        ],
+        "actions": [
+          "Evaluate operation code against supported operations",
+          "Execute corresponding file operation",
+          "Skip processing for unsupported operations",
+          "Always return file status regardless of operation validity"
+        ]
+      },
+      {
+        "id": "BR008",
+        "name": "Key Extraction for Random Access",
+        "description": "Extracts key values from parameter area using specified length for random access operations",
+        "category": "Data Processing",
+        "logic": "Uses substring operation to extract exact key length from key parameter field before performing random access reads",
+        "conditions": [
+          "Key length must be specified and positive",
+          "Key length cannot exceed 25 characters",
+          "Extracted key must match target field requirements (9 chars for customer, 11 digits for account)"
+        ],
+        "actions": [
+          "Extract substring from key field using specified length",
+          "Move extracted key to appropriate file key field",
+          "Perform random access read using extracted key"
+        ]
+      }
+    ],
+    "validations": [
+      {
+        "field": "file_designation",
+        "rule": "Must exactly match one of: TRNXFILE, XREFFILE, CUSTFILE, ACCTFILE",
+        "error_message": "Invalid file designation - processing terminated",
+        "severity": "error"
+      },
+      {
+        "field": "operation_code",
+        "rule": "Must be one of: O (Open), C (Close), R (Read Sequential), K (Keyed Read), W (Write), Z (Rewrite)",
+        "error_message": "Invalid operation code - operation skipped",
+        "severity": "warning"
+      },
+      {
+        "field": "key_length",
+        "rule": "Must be positive value between 1 and 25 for keyed operations",
+        "error_message": "Invalid key length for random access operation",
+        "severity": "error"
+      },
+      {
+        "field": "customer_id",
+        "rule": "Must be 9 characters in numeric format",
+        "error_message": "Invalid customer ID format",
+        "severity": "error"
+      },
+      {
+        "field": "account_id",
+        "rule": "Must be 11 numeric digits",
+        "error_message": "Invalid account ID format",
+        "severity": "error"
+      },
+      {
+        "field": "card_number",
+        "rule": "Must be exactly 16 characters",
+        "error_message": "Invalid card number length",
+        "severity": "error"
+      },
+      {
+        "field": "transaction_id",
+        "rule": "Must be exactly 16 characters",
+        "error_message": "Invalid transaction ID length",
+        "severity": "error"
+      }
+    ],
+    "calculations": [],
+    "workflows": [
+      {
+        "name": "Transaction File Sequential Processing",
+        "description": "Sequential reading of transaction records for report generation",
+        "steps": [
+          {
+            "step_number": 1,
+            "action": "Receive file designation 'TRNXFILE' and operation code from calling program",
+            "conditions": [
+              "File designation must equal TRNXFILE"
+            ],
+            "next_step": "2"
+          },
+          {
+            "step_number": 2,
+            "action": "Open transaction file for input if operation code is 'O'",
+            "conditions": [
+              "Operation code equals O",
+              "File not already open"
+            ],
+            "next_step": "6"
+          },
+          {
+            "step_number": 3,
+            "action": "Read next sequential transaction record if operation code is 'R'",
+            "conditions": [
+              "Operation code equals R",
+              "File is open",
+              "Not at end of file"
+            ],
+            "next_step": "4"
+          },
+          {
+            "step_number": 4,
+            "action": "Move complete transaction record to data exchange area",
+            "conditions": [
+              "Read operation successful"
+            ],
+            "next_step": "6"
+          },
+          {
+            "step_number": 5,
+            "action": "Close transaction file if operation code is 'C'",
+            "conditions": [
+              "Operation code equals C",
+              "File is open"
+            ],
+            "next_step": "6"
+          },
+          {
+            "step_number": 6,
+            "action": "Return file status to calling program",
+            "conditions": [
+              "Always executed"
+            ],
+            "next_step": "end"
+          }
+        ]
+      },
+      {
+        "name": "Customer File Random Access Processing",
+        "description": "Direct retrieval of customer records by customer ID",
+        "steps": [
+          {
+            "step_number": 1,
+            "action": "Receive file designation 'CUSTFILE', operation code, and customer ID from calling program",
+            "conditions": [
+              "File designation must equal CUSTFILE"
+            ],
+            "next_step": "2"
+          },
+          {
+            "step_number": 2,
+            "action": "Open customer file for random input if operation code is 'O'",
+            "conditions": [
+              "Operation code equals O",
+              "File not already open"
+            ],
+            "next_step": "6"
+          },
+          {
+            "step_number": 3,
+            "action": "Extract customer ID from key field using specified length if operation code is 'K'",
+            "conditions": [
+              "Operation code equals K",
+              "File is open",
+              "Key length is valid"
+            ],
+            "next_step": "4"
+          },
+          {
+            "step_number": 4,
+            "action": "Read customer record directly using extracted customer ID",
+            "conditions": [
+              "Customer ID is valid",
+              "Record exists"
+            ],
+            "next_step": "5"
+          },
+          {
+            "step_number": 5,
+            "action": "Move complete customer record to data exchange area",
+            "conditions": [
+              "Read operation successful"
+            ],
+            "next_step": "6"
+          },
+          {
+            "step_number": 6,
+            "action": "Close customer file if operation code is 'C'",
+            "conditions": [
+              "Operation code equals C",
+              "File is open"
+            ],
+            "next_step": "7"
+          },
+          {
+            "step_number": 7,
+            "action": "Return file status to calling program",
+            "conditions": [
+              "Always executed"
+            ],
+            "next_step": "end"
+          }
+        ]
+      },
+      {
+        "name": "Account File Random Access Processing",
+        "description": "Direct retrieval of account records by account ID",
+        "steps": [
+          {
+            "step_number": 1,
+            "action": "Receive file designation 'ACCTFILE', operation code, and account ID from calling program",
+            "conditions": [
+              "File designation must equal ACCTFILE"
+            ],
+            "next_step": "2"
+          },
+          {
+            "step_number": 2,
+            "action": "Open account file for random input if operation code is 'O'",
+            "conditions": [
+              "Operation code equals O",
+              "File not already open"
+            ],
+            "next_step": "6"
+          },
+          {
+            "step_number": 3,
+            "action": "Extract account ID from key field using specified length if operation code is 'K'",
+            "conditions": [
+              "Operation code equals K",
+              "File is open",
+              "Key length is valid"
+            ],
+            "next_step": "4"
+          },
+          {
+            "step_number": 4,
+            "action": "Read account record directly using extracted account ID",
+            "conditions": [
+              "Account ID is valid and numeric",
+              "Record exists"
+            ],
+            "next_step": "5"
+          },
+          {
+            "step_number": 5,
+            "action": "Move complete account record to data exchange area",
+            "conditions": [
+              "Read operation successful"
+            ],
+            "next_step": "6"
+          },
+          {
+            "step_number": 6,
+            "action": "Close account file if operation code is 'C'",
+            "conditions": [
+              "Operation code equals C",
+              "File is open"
+            ],
+            "next_step": "7"
+          },
+          {
+            "step_number": 7,
+            "action": "Return file status to calling program",
+            "conditions": [
+              "Always executed"
+            ],
+            "next_step": "end"
+          }
+        ]
+      },
+      {
+        "name": "Cross-Reference File Sequential Processing",
+        "description": "Sequential reading of card cross-reference records to link cards with customers and accounts",
+        "steps": [
+          {
+            "step_number": 1,
+            "action": "Receive file designation 'XREFFILE' and operation code from calling program",
+            "conditions": [
+              "File designation must equal XREFFILE"
+            ],
+            "next_step": "2"
+          },
+          {
+            "step_number": 2,
+            "action": "Open cross-reference file for input if operation code is 'O'",
+            "conditions": [
+              "Operation code equals O",
+              "File not already open"
+            ],
+            "next_step": "6"
+          },
+          {
+            "step_number": 3,
+            "action": "Read next sequential cross-reference record if operation code is 'R'",
+            "conditions": [
+              "Operation code equals R",
+              "File is open",
+              "Not at end of file"
+            ],
+            "next_step": "4"
+          },
+          {
+            "step_number": 4,
+            "action": "Move complete cross-reference record to data exchange area",
+            "conditions": [
+              "Read operation successful"
+            ],
+            "next_step": "6"
+          },
+          {
+            "step_number": 5,
+            "action": "Close cross-reference file if operation code is 'C'",
+            "conditions": [
+              "Operation code equals C",
+              "File is open"
+            ],
+            "next_step": "6"
+          },
+          {
+            "step_number": 6,
+            "action": "Return file status to calling program",
+            "conditions": [
+              "Always executed"
+            ],
+            "next_step": "end"
+          }
+        ]
+      }
+    ],
+    "integrations": [
+      {
+        "name": "Statement Creation Program Interface",
+        "type": "Internal Service Call",
+        "purpose": "Provides file access services to statement creation and report generation programs",
+        "data_exchanged": [
+          "File designation identifier",
+          "Operation code",
+          "Key values for random access",
+          "Complete record data",
+          "File operation status codes"
+        ],
+        "trigger_conditions": [
+          "Called by statement creation programs requiring data access",
+          "Invoked for each file operation needed during report generation"
+        ]
+      },
+      {
+        "name": "Transaction Data Repository",
+        "type": "Data Source",
+        "purpose": "Provides access to transaction records for reporting and analysis",
+        "data_exchanged": [
+          "Card numbers",
+          "Transaction identifiers",
+          "Transaction details and amounts"
+        ],
+        "trigger_conditions": [
+          "Sequential processing of transactions for statement generation",
+          "Transaction history retrieval for customer statements"
+        ]
+      },
+      {
+        "name": "Customer Master Data Repository",
+        "type": "Data Source",
+        "purpose": "Provides direct access to customer demographic and profile information",
+        "data_exchanged": [
+          "Customer identifiers",
+          "Customer demographics",
+          "Contact information",
+          "Credit scores"
+        ],
+        "trigger_conditions": [
+          "Customer information lookup during transaction processing",
+          "Customer data retrieval for statement personalization"
+        ]
+      },
+      {
+        "name": "Account Master Data Repository",
+        "type": "Data Source",
+        "purpose": "Provides direct access to account balances, limits, and status information",
+        "data_exchanged": [
+          "Account identifiers",
+          "Account balances",
+          "Credit limits",
+          "Account status"
+        ],
+        "trigger_conditions": [
+          "Account information lookup during transaction processing",
+          "Balance retrieval for statement generation"
+        ]
+      },
+      {
+        "name": "Card Cross-Reference Repository",
+        "type": "Data Source",
+        "purpose": "Provides relationship mapping between cards, customers, and accounts",
+        "data_exchanged": [
+          "Card numbers",
+          "Customer identifiers",
+          "Account identifiers"
+        ],
+        "trigger_conditions": [
+          "Linking card transactions to customer and account information",
+          "Resolving card-to-customer-to-account relationships"
+        ]
+      }
+    ],
+    "security": {
+      "roles": [],
+      "permissions": [],
+      "authentication_requirements": [
+        "Calling programs must have proper authorization to invoke file processing subroutine",
+        "Read-only access enforced for all file operations",
+        "No write or update operations permitted through this interface"
+      ]
+    },
+    "error_handling": [
+      {
+        "error_code": "00",
+        "condition": "File operation completed successfully",
+        "business_impact": "None - normal operation",
+        "suggested_action": "Continue processing"
+      },
+      {
+        "error_code": "10",
+        "condition": "End of file reached during sequential read",
+        "business_impact": "No more records available for processing",
+        "suggested_action": "Complete current processing cycle and close file"
+      },
+      {
+        "error_code": "23",
+        "condition": "Record not found during random access read",
+        "business_impact": "Requested customer or account record does not exist",
+        "suggested_action": "Handle missing record appropriately in calling program - may indicate data integrity issue"
+      },
+      {
+        "error_code": "24",
+        "condition": "Boundary violation - key out of range",
+        "business_impact": "Invalid key value provided for random access",
+        "suggested_action": "Validate key values before attempting random access operations"
+      },
+      {
+        "error_code": "30",
+        "condition": "Permanent I/O error",
+        "business_impact": "Critical - file access failure preventing data retrieval",
+        "suggested_action": "Log error, notify system administrators, terminate processing gracefully"
+      },
+      {
+        "error_code": "90",
+        "condition": "File not open or logic error",
+        "business_impact": "Operation attempted on closed file or invalid operation sequence",
+        "suggested_action": "Ensure proper file open/close sequencing in calling program"
+      },
+      {
+        "error_code": "INVALID_FILE",
+        "condition": "Unsupported file designation provided",
+        "business_impact": "Processing cannot proceed - invalid file identifier",
+        "suggested_action": "Verify file designation matches supported values: TRNXFILE, XREFFILE, CUSTFILE, ACCTFILE"
+      }
+    ]
+  },
+  "frontend": {
+    "screens": [],
+    "reports": [
+      {
+        "name": "Transaction Statement Report",
+        "description": "Generated using transaction data accessed through this subroutine",
+        "type": "Batch Report",
+        "data_sources": [
+          "Transaction File (TRNXFILE)",
+          "Card Cross-Reference File (XREFFILE)",
+          "Customer File (CUSTFILE)",
+          "Account File (ACCTFILE)"
+        ],
+        "filters": [
+          "Card number range",
+          "Transaction date range",
+          "Customer identifier"
+        ],
+        "columns": [
+          {
+            "name": "Card Number",
+            "data_field": "card_number",
+            "format": "16-character alphanumeric",
+            "aggregation": "none"
+          },
+          {
+            "name": "Transaction ID",
+            "data_field": "transaction_id",
+            "format": "16-character alphanumeric",
+            "aggregation": "none"
+          },
+          {
+            "name": "Customer Information",
+            "data_field": "customer_data",
+            "format": "Formatted customer details",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account Information",
+            "data_field": "account_data",
+            "format": "Formatted account details",
+            "aggregation": "none"
+          }
+        ],
+        "sorting": [
+          "Card number ascending",
+          "Transaction ID ascending"
+        ],
+        "grouping": [
+          "By card number",
+          "By customer"
+        ]
+      }
+    ],
+    "navigation_flow": [],
+    "user_messages": [
+      {
+        "code": "FILE_STATUS_00",
+        "type": "success",
+        "message": "File operation completed successfully",
+        "context": "Returned after successful file operations"
+      },
+      {
+        "code": "FILE_STATUS_10",
+        "type": "info",
+        "message": "End of file reached",
+        "context": "Returned when sequential read reaches end of file"
+      },
+      {
+        "code": "FILE_STATUS_23",
+        "type": "warning",
+        "message": "Record not found",
+        "context": "Returned when random access read cannot locate requested record"
+      },
+      {
+        "code": "FILE_STATUS_24",
+        "type": "error",
+        "message": "Key boundary violation",
+        "context": "Returned when provided key is out of valid range"
+      },
+      {
+        "code": "FILE_STATUS_30",
+        "type": "error",
+        "message": "Permanent I/O error",
+        "context": "Returned when file access fails due to system error"
+      },
+      {
+        "code": "FILE_STATUS_90",
+        "type": "error",
+        "message": "File not open or logic error",
+        "context": "Returned when operation attempted on closed file or invalid sequence"
+      }
+    ]
+  },
+  "data_flows": [
+    {
+      "name": "Transaction Data Retrieval Flow",
+      "description": "Sequential retrieval of transaction records for statement generation",
+      "source": "Transaction File (TRNXFILE)",
+      "destination": "Calling Program Data Area",
+      "data_elements": [
+        "Card number (16 chars)",
+        "Transaction ID (16 chars)",
+        "Transaction data (318 chars)"
+      ],
+      "transformations": [
+        "Complete record moved to 1000-character data exchange area",
+        "File status captured and returned to calling program"
+      ]
+    },
+    {
+      "name": "Customer Data Retrieval Flow",
+      "description": "Direct retrieval of customer records by customer ID",
+      "source": "Customer File (CUSTFILE)",
+      "destination": "Calling Program Data Area",
+      "data_elements": [
+        "Customer ID (9 chars)",
+        "Customer data (491 chars)"
+      ],
+      "transformations": [
+        "Customer ID extracted from key parameter using specified length",
+        "Complete customer record moved to data exchange area",
+        "File status captured and returned"
+      ]
+    },
+    {
+      "name": "Account Data Retrieval Flow",
+      "description": "Direct retrieval of account records by account ID",
+      "source": "Account File (ACCTFILE)",
+      "destination": "Calling Program Data Area",
+      "data_elements": [
+        "Account ID (11 digits)",
+        "Account data (289 chars)"
+      ],
+      "transformations": [
+        "Account ID extracted from key parameter using specified length",
+        "Complete account record moved to data exchange area",
+        "File status captured and returned"
+      ]
+    },
+    {
+      "name": "Cross-Reference Data Retrieval Flow",
+      "description": "Sequential retrieval of card-to-customer-to-account relationships",
+      "source": "Card Cross-Reference File (XREFFILE)",
+      "destination": "Calling Program Data Area",
+      "data_elements": [
+        "Card number (16 chars)",
+        "Cross-reference data containing customer ID and account ID (34 chars)"
+      ],
+      "transformations": [
+        "Complete cross-reference record moved to data exchange area",
+        "File status captured and returned"
+      ]
+    },
+    {
+      "name": "Operation Control Flow",
+      "description": "Parameter passing from calling program to file processing subroutine",
+      "source": "Calling Program",
+      "destination": "File Processing Subroutine",
+      "data_elements": [
+        "File designation (8 chars)",
+        "Operation code (1 char)",
+        "Key value (up to 25 chars)",
+        "Key length (4 digits)"
+      ],
+      "transformations": [
+        "File designation evaluated for routing",
+        "Operation code determines specific file operation",
+        "Key extracted using specified length for random access"
+      ]
+    },
+    {
+      "name": "Status Return Flow",
+      "description": "File operation status returned to calling program",
+      "source": "File Processing Subroutine",
+      "destination": "Calling Program",
+      "data_elements": [
+        "File status code (2 chars)",
+        "Record data (up to 1000 chars)"
+      ],
+      "transformations": [
+        "File-specific status moved to return code field",
+        "Record data populated in data exchange area for read operations"
+      ]
+    }
+  ],
+  "business_constraints": [
+    {
+      "type": "Access Control",
+      "description": "All file operations are read-only (input mode only)",
+      "impact": "No data modification possible through this interface - ensures data integrity for reporting purposes"
+    },
+    {
+      "type": "File Organization",
+      "description": "Transaction and cross-reference files use sequential access; customer and account files use random access",
+      "impact": "Access patterns optimized for specific use cases - sequential for batch processing, random for lookups"
+    },
+    {
+      "type": "Key Structure",
+      "description": "Transaction file uses composite key (card number + transaction ID); other files use single-field keys",
+      "impact": "Transaction uniqueness ensured through composite key; other entities use simple primary keys"
+    },
+    {
+      "type": "Data Exchange Limitation",
+      "description": "Maximum record size limited to 1000 characters in data exchange area",
+      "impact": "All record types must fit within 1000-character buffer; largest record is customer at 500 characters"
+    },
+    {
+      "type": "Operation Scope",
+      "description": "Only open, read, and close operations supported; write and rewrite defined but not implemented",
+      "impact": "Subroutine serves as read-only data access layer; updates must be performed through other programs"
+    },
+    {
+      "type": "Stateless Design",
+      "description": "No persistent state maintained between calls",
+      "impact": "Each invocation is independent; calling program responsible for maintaining processing context"
+    },
+    {
+      "type": "Error Handling Responsibility",
+      "description": "File status returned to calling program; no internal error handling or recovery",
+      "impact": "Calling programs must implement appropriate error handling based on returned status codes"
+    },
+    {
+      "type": "Key Length Constraint",
+      "description": "Maximum key length for random access operations is 25 characters",
+      "impact": "Key values must fit within 25-character parameter field; actual key lengths are 9 for customer, 11 for account"
+    }
+  ]
+}

@@ -1,0 +1,1199 @@
+{
+  "application_metadata": {
+    "name": "Interest Calculator Batch Program",
+    "description": "Batch program that processes transaction category balance records to calculate monthly interest charges for credit card accounts and generates corresponding interest transactions as part of the monthly billing cycle",
+    "domain": "Credit Card Account Management"
+  },
+  "backend": {
+    "business_entities": [
+      {
+        "name": "TransactionCategoryBalance",
+        "description": "Balance amounts for specific transaction categories within an account",
+        "attributes": [
+          {
+            "name": "account_id",
+            "type": "numeric",
+            "length": 11,
+            "required": true,
+            "description": "Account identifier for transaction category balance record"
+          },
+          {
+            "name": "transaction_type_code",
+            "type": "alphanumeric",
+            "length": 2,
+            "required": true,
+            "description": "Transaction type code identifying category of transaction"
+          },
+          {
+            "name": "transaction_category_code",
+            "type": "numeric",
+            "length": 4,
+            "required": true,
+            "description": "Transaction category code for specific transaction classification"
+          },
+          {
+            "name": "balance_amount",
+            "type": "decimal",
+            "length": 11,
+            "required": true,
+            "description": "Current balance amount for the transaction category"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "Account",
+            "relationship_type": "belongs_to",
+            "cardinality": "many_to_one"
+          }
+        ]
+      },
+      {
+        "name": "Account",
+        "description": "Master account record containing account details, balances, and status information",
+        "attributes": [
+          {
+            "name": "account_id",
+            "type": "numeric",
+            "length": 11,
+            "required": true,
+            "description": "Primary account identifier"
+          },
+          {
+            "name": "account_group_id",
+            "type": "alphanumeric",
+            "length": 10,
+            "required": true,
+            "description": "Account group identifier for interest rate classification"
+          },
+          {
+            "name": "current_balance",
+            "type": "decimal",
+            "length": 11,
+            "required": true,
+            "description": "Current account balance including all charges and payments"
+          },
+          {
+            "name": "current_cycle_credit",
+            "type": "decimal",
+            "length": 11,
+            "required": true,
+            "description": "Total credit transactions in current billing cycle"
+          },
+          {
+            "name": "current_cycle_debit",
+            "type": "decimal",
+            "length": 11,
+            "required": true,
+            "description": "Total debit transactions in current billing cycle"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "CardCrossReference",
+            "relationship_type": "has_many",
+            "cardinality": "one_to_many"
+          },
+          {
+            "related_entity": "DisclosureGroup",
+            "relationship_type": "belongs_to",
+            "cardinality": "many_to_one"
+          },
+          {
+            "related_entity": "TransactionCategoryBalance",
+            "relationship_type": "has_many",
+            "cardinality": "one_to_many"
+          }
+        ]
+      },
+      {
+        "name": "CardCrossReference",
+        "description": "Cross-reference linking cards to accounts and customers",
+        "attributes": [
+          {
+            "name": "card_number",
+            "type": "alphanumeric",
+            "length": 16,
+            "required": true,
+            "description": "Credit card number associated with account"
+          },
+          {
+            "name": "customer_number",
+            "type": "numeric",
+            "length": 9,
+            "required": true,
+            "description": "Customer number associated with card and account"
+          },
+          {
+            "name": "account_id",
+            "type": "numeric",
+            "length": 11,
+            "required": true,
+            "description": "Account identifier in cross-reference record"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "Account",
+            "relationship_type": "belongs_to",
+            "cardinality": "many_to_one"
+          }
+        ]
+      },
+      {
+        "name": "DisclosureGroup",
+        "description": "Interest rate configuration by account group and transaction type",
+        "attributes": [
+          {
+            "name": "account_group_id",
+            "type": "alphanumeric",
+            "length": 10,
+            "required": true,
+            "description": "Account group identifier for interest rate classification"
+          },
+          {
+            "name": "transaction_type_code",
+            "type": "alphanumeric",
+            "length": 2,
+            "required": true,
+            "description": "Transaction type code for disclosure group lookup"
+          },
+          {
+            "name": "transaction_category_code",
+            "type": "numeric",
+            "length": 4,
+            "required": true,
+            "description": "Transaction category code for disclosure group"
+          },
+          {
+            "name": "interest_rate",
+            "type": "decimal",
+            "length": 5,
+            "required": true,
+            "description": "Annual percentage interest rate for the group and category"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "Account",
+            "relationship_type": "has_many",
+            "cardinality": "one_to_many"
+          }
+        ]
+      },
+      {
+        "name": "Transaction",
+        "description": "Individual transaction record for financial activity",
+        "attributes": [
+          {
+            "name": "transaction_id",
+            "type": "alphanumeric",
+            "length": 16,
+            "required": true,
+            "description": "Unique transaction identifier"
+          },
+          {
+            "name": "account_id",
+            "type": "numeric",
+            "length": 11,
+            "required": true,
+            "description": "Associated account identifier"
+          },
+          {
+            "name": "card_number",
+            "type": "alphanumeric",
+            "length": 16,
+            "required": true,
+            "description": "Card number used for transaction"
+          },
+          {
+            "name": "transaction_type_code",
+            "type": "alphanumeric",
+            "length": 2,
+            "required": true,
+            "description": "Transaction type classification code"
+          },
+          {
+            "name": "transaction_category_code",
+            "type": "numeric",
+            "length": 4,
+            "required": true,
+            "description": "Transaction category classification code"
+          },
+          {
+            "name": "transaction_source",
+            "type": "alphanumeric",
+            "length": 10,
+            "required": true,
+            "description": "Source of the transaction (e.g., System, Manual)"
+          },
+          {
+            "name": "transaction_description",
+            "type": "alphanumeric",
+            "length": 100,
+            "required": true,
+            "description": "Descriptive text for the transaction"
+          },
+          {
+            "name": "transaction_amount",
+            "type": "decimal",
+            "length": 11,
+            "required": true,
+            "description": "Monetary amount of the transaction"
+          },
+          {
+            "name": "merchant_id",
+            "type": "numeric",
+            "length": 9,
+            "required": false,
+            "description": "Merchant identifier (not applicable for system transactions)"
+          },
+          {
+            "name": "merchant_name",
+            "type": "alphanumeric",
+            "length": 50,
+            "required": false,
+            "description": "Merchant name (not applicable for system transactions)"
+          },
+          {
+            "name": "merchant_city",
+            "type": "alphanumeric",
+            "length": 50,
+            "required": false,
+            "description": "Merchant city (not applicable for system transactions)"
+          },
+          {
+            "name": "merchant_zip",
+            "type": "alphanumeric",
+            "length": 10,
+            "required": false,
+            "description": "Merchant ZIP code (not applicable for system transactions)"
+          },
+          {
+            "name": "origination_timestamp",
+            "type": "timestamp",
+            "length": 26,
+            "required": true,
+            "description": "Original timestamp when transaction was created"
+          },
+          {
+            "name": "processing_timestamp",
+            "type": "timestamp",
+            "length": 26,
+            "required": true,
+            "description": "Timestamp when transaction was processed"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "Account",
+            "relationship_type": "belongs_to",
+            "cardinality": "many_to_one"
+          }
+        ]
+      }
+    ],
+    "business_rules": [
+      {
+        "id": "BR-INT-001",
+        "name": "Monthly Interest Calculation",
+        "description": "Calculate monthly interest charges based on transaction category balances and applicable interest rates",
+        "category": "Financial Calculation",
+        "logic": "For each transaction category balance with a non-zero interest rate, calculate monthly interest using the formula: Monthly Interest = (Balance × Interest Rate) ÷ 1200. The divisor 1200 converts annual percentage rate to monthly decimal rate (÷12 for months, ÷100 for percentage).",
+        "conditions": [
+          "Transaction category balance must exist",
+          "Interest rate must not equal zero",
+          "Account must be active and accessible"
+        ],
+        "actions": [
+          "Calculate monthly interest amount",
+          "Generate interest transaction record",
+          "Accumulate total interest for account",
+          "Update transaction ID suffix counter"
+        ]
+      },
+      {
+        "id": "BR-INT-002",
+        "name": "Interest Rate Lookup with Default Fallback",
+        "description": "Determine applicable interest rate using account group ID, transaction type, and category code, with automatic fallback to default group rates",
+        "category": "Rate Determination",
+        "logic": "Lookup interest rate using composite key: account_group_id + transaction_type_code + transaction_category_code. If no rate found, retry lookup using 'DEFAULT' as account_group_id with same transaction codes.",
+        "conditions": [
+          "Account must have valid group ID",
+          "Transaction type and category codes must be valid",
+          "Either specific or default rate configuration must exist"
+        ],
+        "actions": [
+          "Attempt primary rate lookup with account group ID",
+          "If not found, attempt secondary lookup with DEFAULT group",
+          "Retrieve interest rate from matching record",
+          "Proceed with interest calculation if rate exists"
+        ]
+      },
+      {
+        "id": "BR-INT-003",
+        "name": "Account Balance Update and Cycle Reset",
+        "description": "Update account balance with total calculated interest and reset cycle-to-date transaction amounts",
+        "category": "Account Management",
+        "logic": "After processing all transaction categories for an account, add total accumulated interest to current balance, then reset both current cycle credit and debit amounts to zero to prepare for next billing cycle.",
+        "conditions": [
+          "All transaction categories for account have been processed",
+          "Total interest amount has been calculated",
+          "Account record is accessible for update"
+        ],
+        "actions": [
+          "Add total interest to current account balance",
+          "Set current cycle credit to zero",
+          "Set current cycle debit to zero",
+          "Update account master record"
+        ]
+      },
+      {
+        "id": "BR-INT-004",
+        "name": "Interest Transaction Generation",
+        "description": "Create system-generated interest transaction records with complete audit trail",
+        "category": "Transaction Management",
+        "logic": "For each interest calculation, generate a transaction record with unique ID (processing_date + sequential_suffix), transaction type '01', category '05', source 'System', descriptive text including account ID, calculated interest amount, associated card number, and current timestamp.",
+        "conditions": [
+          "Monthly interest has been calculated",
+          "Interest amount is non-zero",
+          "Card cross-reference data is available"
+        ],
+        "actions": [
+          "Generate unique transaction ID from date and suffix",
+          "Set transaction classification codes (type: 01, category: 05)",
+          "Set transaction source as 'System'",
+          "Create description: 'Int. for a/c [account_id]'",
+          "Set transaction amount to calculated interest",
+          "Clear merchant information fields",
+          "Associate card number from cross-reference",
+          "Set origination and processing timestamps to current time",
+          "Write transaction record"
+        ]
+      },
+      {
+        "id": "BR-INT-005",
+        "name": "Sequential Account Processing",
+        "description": "Process transaction category balances sequentially, grouping by account ID to ensure proper interest accumulation",
+        "category": "Process Control",
+        "logic": "Read transaction category balance records in sequence. When account ID changes, complete processing for previous account (update balance, reset cycles) before starting new account processing. Track last processed account to detect account boundaries.",
+        "conditions": [
+          "Transaction category balance records are available",
+          "Records are sorted or grouped by account ID"
+        ],
+        "actions": [
+          "Read next transaction category balance record",
+          "Compare account ID with last processed account",
+          "If different account, finalize previous account processing",
+          "Retrieve complete account and cross-reference data for new account",
+          "Reset interest accumulator for new account",
+          "Process interest calculation for current record",
+          "Continue until all records processed"
+        ]
+      },
+      {
+        "id": "BR-INT-006",
+        "name": "Transaction ID Uniqueness",
+        "description": "Ensure all generated interest transactions have unique identifiers",
+        "category": "Data Integrity",
+        "logic": "Generate transaction IDs by concatenating processing date parameter with a sequential suffix counter that increments for each transaction generated during the batch run.",
+        "conditions": [
+          "Processing date parameter is provided",
+          "Transaction suffix counter is maintained across processing"
+        ],
+        "actions": [
+          "Increment transaction suffix counter",
+          "Concatenate processing date with suffix",
+          "Assign concatenated value as transaction ID",
+          "Ensure uniqueness within batch run"
+        ]
+      },
+      {
+        "id": "BR-INT-007",
+        "name": "Zero Interest Rate Handling",
+        "description": "Skip interest calculation when interest rate is zero",
+        "category": "Calculation Control",
+        "logic": "Check if retrieved interest rate equals zero before performing calculation. If zero, bypass interest computation and transaction generation for that transaction category.",
+        "conditions": [
+          "Interest rate has been successfully retrieved",
+          "Interest rate value equals zero"
+        ],
+        "actions": [
+          "Skip monthly interest calculation",
+          "Skip transaction generation",
+          "Continue to next transaction category balance record"
+        ]
+      },
+      {
+        "id": "BR-INT-008",
+        "name": "Billing Cycle Processing",
+        "description": "Execute interest calculations as part of monthly billing cycle with proper date tracking",
+        "category": "Billing Management",
+        "logic": "Process all account transaction category balances for a specific billing cycle date provided as input parameter. Use this date for transaction generation and audit trail.",
+        "conditions": [
+          "Processing date parameter is provided and valid",
+          "Transaction category balances represent end-of-cycle amounts"
+        ],
+        "actions": [
+          "Accept processing date as input parameter",
+          "Use processing date in transaction ID generation",
+          "Apply interest calculations to all qualifying accounts",
+          "Update account balances for billing cycle closure",
+          "Reset cycle-to-date amounts for next cycle"
+        ]
+      }
+    ],
+    "validations": [
+      {
+        "field": "interest_rate",
+        "rule": "Must be retrievable from disclosure group configuration",
+        "error_message": "DISCLOSURE GROUP RECORD MISSING - TRY WITH DEFAULT GROUP CODE",
+        "severity": "warning"
+      },
+      {
+        "field": "interest_rate",
+        "rule": "Must not equal zero to perform calculation",
+        "error_message": "No interest calculation performed for zero rate",
+        "severity": "info"
+      },
+      {
+        "field": "account_record",
+        "rule": "Must exist and be accessible for update",
+        "error_message": "ERROR RE-WRITING ACCOUNT FILE",
+        "severity": "critical"
+      },
+      {
+        "field": "cross_reference_record",
+        "rule": "Must exist to retrieve card number for transaction",
+        "error_message": "Cross-reference record not found for account",
+        "severity": "error"
+      },
+      {
+        "field": "transaction_category_balance",
+        "rule": "Must contain valid account ID, transaction type, and category code",
+        "error_message": "Invalid transaction category balance record",
+        "severity": "error"
+      },
+      {
+        "field": "processing_date",
+        "rule": "Must be provided as input parameter",
+        "error_message": "Processing date parameter missing",
+        "severity": "critical"
+      }
+    ],
+    "calculations": [
+      {
+        "name": "Monthly Interest Calculation",
+        "description": "Calculate monthly interest charge from transaction category balance and annual interest rate",
+        "formula": "monthly_interest = (balance_amount × interest_rate) ÷ 1200",
+        "input_fields": [
+          "balance_amount",
+          "interest_rate"
+        ],
+        "output_field": "monthly_interest",
+        "calculation_details": {
+          "divisor_explanation": "1200 = 12 months × 100 (percentage to decimal conversion)",
+          "precision": "2 decimal places",
+          "rounding": "Standard financial rounding",
+          "example": "Balance $1,000.00 × Rate 18.00% ÷ 1200 = $15.00 monthly interest"
+        }
+      },
+      {
+        "name": "Total Interest Accumulation",
+        "description": "Sum all monthly interest calculations for an account across all transaction categories",
+        "formula": "total_interest = sum(monthly_interest) for all transaction categories",
+        "input_fields": [
+          "monthly_interest"
+        ],
+        "output_field": "total_interest"
+      },
+      {
+        "name": "New Account Balance",
+        "description": "Calculate updated account balance including interest charges",
+        "formula": "new_balance = current_balance + total_interest",
+        "input_fields": [
+          "current_balance",
+          "total_interest"
+        ],
+        "output_field": "new_balance"
+      }
+    ],
+    "workflows": [
+      {
+        "name": "Monthly Interest Processing",
+        "description": "Complete workflow for processing monthly interest charges across all accounts",
+        "steps": [
+          {
+            "step_number": 1,
+            "action": "Initialize processing environment and counters",
+            "conditions": [
+              "All required data sources are accessible",
+              "Processing date parameter is provided"
+            ],
+            "next_step": "2"
+          },
+          {
+            "step_number": 2,
+            "action": "Read next transaction category balance record",
+            "conditions": [
+              "More records available to process"
+            ],
+            "next_step": "3"
+          },
+          {
+            "step_number": 3,
+            "action": "Check if account ID has changed from previous record",
+            "conditions": [
+              "Current account ID differs from last processed account"
+            ],
+            "next_step": "4 if changed, 8 if same"
+          },
+          {
+            "step_number": 4,
+            "action": "Finalize previous account (if not first record)",
+            "conditions": [
+              "This is not the first record processed"
+            ],
+            "next_step": "5"
+          },
+          {
+            "step_number": 5,
+            "action": "Retrieve complete account master data for new account",
+            "conditions": [
+              "Account ID is valid"
+            ],
+            "next_step": "6"
+          },
+          {
+            "step_number": 6,
+            "action": "Retrieve card cross-reference data for account",
+            "conditions": [
+              "Cross-reference record exists"
+            ],
+            "next_step": "7"
+          },
+          {
+            "step_number": 7,
+            "action": "Reset total interest accumulator to zero",
+            "conditions": [],
+            "next_step": "8"
+          },
+          {
+            "step_number": 8,
+            "action": "Lookup interest rate using account group and transaction codes",
+            "conditions": [
+              "Valid account group ID, transaction type, and category code"
+            ],
+            "next_step": "9 if found, 10 if not found"
+          },
+          {
+            "step_number": 9,
+            "action": "Use retrieved interest rate for calculation",
+            "conditions": [],
+            "next_step": "11"
+          },
+          {
+            "step_number": 10,
+            "action": "Attempt lookup with DEFAULT group ID",
+            "conditions": [
+              "Default group configuration exists"
+            ],
+            "next_step": "11"
+          },
+          {
+            "step_number": 11,
+            "action": "Check if interest rate is non-zero",
+            "conditions": [
+              "Interest rate > 0"
+            ],
+            "next_step": "12 if non-zero, 2 if zero"
+          },
+          {
+            "step_number": 12,
+            "action": "Calculate monthly interest using formula",
+            "conditions": [],
+            "next_step": "13"
+          },
+          {
+            "step_number": 13,
+            "action": "Add monthly interest to account total",
+            "conditions": [],
+            "next_step": "14"
+          },
+          {
+            "step_number": 14,
+            "action": "Generate interest transaction record",
+            "conditions": [],
+            "next_step": "15"
+          },
+          {
+            "step_number": 15,
+            "action": "Write transaction record to output",
+            "conditions": [],
+            "next_step": "2"
+          },
+          {
+            "step_number": 16,
+            "action": "Process final account when end-of-file reached",
+            "conditions": [
+              "No more records to process"
+            ],
+            "next_step": "17"
+          },
+          {
+            "step_number": 17,
+            "action": "Update final account balance and reset cycle amounts",
+            "conditions": [],
+            "next_step": "18"
+          },
+          {
+            "step_number": 18,
+            "action": "Close all data sources and complete processing",
+            "conditions": [],
+            "next_step": "end"
+          }
+        ]
+      },
+      {
+        "name": "Account Balance Finalization",
+        "description": "Finalize account processing by updating balance and resetting cycle counters",
+        "steps": [
+          {
+            "step_number": 1,
+            "action": "Add accumulated total interest to current account balance",
+            "conditions": [
+              "Total interest has been calculated for account"
+            ],
+            "next_step": "2"
+          },
+          {
+            "step_number": 2,
+            "action": "Reset current cycle credit amount to zero",
+            "conditions": [],
+            "next_step": "3"
+          },
+          {
+            "step_number": 3,
+            "action": "Reset current cycle debit amount to zero",
+            "conditions": [],
+            "next_step": "4"
+          },
+          {
+            "step_number": 4,
+            "action": "Update account master record with changes",
+            "conditions": [
+              "Account record is accessible for update"
+            ],
+            "next_step": "end"
+          }
+        ]
+      },
+      {
+        "name": "Interest Rate Determination",
+        "description": "Determine applicable interest rate with fallback to default",
+        "steps": [
+          {
+            "step_number": 1,
+            "action": "Construct lookup key from account group ID, transaction type, and category",
+            "conditions": [],
+            "next_step": "2"
+          },
+          {
+            "step_number": 2,
+            "action": "Attempt to retrieve disclosure group record",
+            "conditions": [],
+            "next_step": "3 if found, 4 if not found"
+          },
+          {
+            "step_number": 3,
+            "action": "Extract interest rate from retrieved record",
+            "conditions": [],
+            "next_step": "end"
+          },
+          {
+            "step_number": 4,
+            "action": "Replace account group ID with 'DEFAULT' literal",
+            "conditions": [],
+            "next_step": "5"
+          },
+          {
+            "step_number": 5,
+            "action": "Retry disclosure group record retrieval",
+            "conditions": [
+              "Default group configuration exists"
+            ],
+            "next_step": "6 if found, error if not found"
+          },
+          {
+            "step_number": 6,
+            "action": "Extract interest rate from default record",
+            "conditions": [],
+            "next_step": "end"
+          }
+        ]
+      }
+    ],
+    "integrations": [
+      {
+        "name": "Transaction Category Balance Data Source",
+        "type": "data_input",
+        "purpose": "Provide account transaction category balances for interest calculation",
+        "data_exchanged": [
+          "account_id",
+          "transaction_type_code",
+          "transaction_category_code",
+          "balance_amount"
+        ],
+        "trigger_conditions": [
+          "Monthly billing cycle completion",
+          "All transaction category balances calculated and available"
+        ]
+      },
+      {
+        "name": "Account Master Data Store",
+        "type": "data_read_write",
+        "purpose": "Retrieve account details and update balances with interest charges",
+        "data_exchanged": [
+          "account_id",
+          "account_group_id",
+          "current_balance",
+          "current_cycle_credit",
+          "current_cycle_debit"
+        ],
+        "trigger_conditions": [
+          "Account ID change detected during processing",
+          "Total interest calculated for account"
+        ]
+      },
+      {
+        "name": "Card Cross-Reference Data Store",
+        "type": "data_read",
+        "purpose": "Retrieve card number associated with account for transaction generation",
+        "data_exchanged": [
+          "account_id",
+          "card_number",
+          "customer_number"
+        ],
+        "trigger_conditions": [
+          "New account processing initiated"
+        ]
+      },
+      {
+        "name": "Disclosure Group Configuration",
+        "type": "data_read",
+        "purpose": "Retrieve applicable interest rates based on account group and transaction classification",
+        "data_exchanged": [
+          "account_group_id",
+          "transaction_type_code",
+          "transaction_category_code",
+          "interest_rate"
+        ],
+        "trigger_conditions": [
+          "Interest calculation required for transaction category balance"
+        ]
+      },
+      {
+        "name": "Transaction Output System",
+        "type": "data_write",
+        "purpose": "Record generated interest transactions for downstream processing",
+        "data_exchanged": [
+          "transaction_id",
+          "account_id",
+          "card_number",
+          "transaction_type_code",
+          "transaction_category_code",
+          "transaction_source",
+          "transaction_description",
+          "transaction_amount",
+          "origination_timestamp",
+          "processing_timestamp"
+        ],
+        "trigger_conditions": [
+          "Interest calculated for transaction category with non-zero rate"
+        ]
+      }
+    ],
+    "security": {
+      "roles": [
+        "Batch Processing System",
+        "Financial Operations Administrator"
+      ],
+      "permissions": [
+        {
+          "role": "Batch Processing System",
+          "resource": "Transaction Category Balances",
+          "actions": [
+            "read"
+          ]
+        },
+        {
+          "role": "Batch Processing System",
+          "resource": "Account Master Records",
+          "actions": [
+            "read",
+            "update"
+          ]
+        },
+        {
+          "role": "Batch Processing System",
+          "resource": "Card Cross-Reference",
+          "actions": [
+            "read"
+          ]
+        },
+        {
+          "role": "Batch Processing System",
+          "resource": "Disclosure Group Configuration",
+          "actions": [
+            "read"
+          ]
+        },
+        {
+          "role": "Batch Processing System",
+          "resource": "Transaction Records",
+          "actions": [
+            "create",
+            "write"
+          ]
+        },
+        {
+          "role": "Financial Operations Administrator",
+          "resource": "Batch Process Execution",
+          "actions": [
+            "execute",
+            "monitor"
+          ]
+        }
+      ],
+      "authentication_requirements": [
+        "Batch job authorization required to execute program",
+        "System-level access to data sources required",
+        "Processing date parameter must be provided by authorized scheduler"
+      ]
+    },
+    "error_handling": [
+      {
+        "error_code": "ERR-INT-001",
+        "condition": "Transaction category balance data source unavailable or inaccessible",
+        "business_impact": "Interest calculation cannot proceed, billing cycle incomplete",
+        "suggested_action": "Verify data source availability and retry batch process"
+      },
+      {
+        "error_code": "ERR-INT-002",
+        "condition": "Account master record not found for account ID",
+        "business_impact": "Cannot retrieve account details or update balance for specific account",
+        "suggested_action": "Investigate data inconsistency between transaction category balances and account master"
+      },
+      {
+        "error_code": "ERR-INT-003",
+        "condition": "Card cross-reference record not found for account",
+        "business_impact": "Cannot associate transaction with card number, transaction generation incomplete",
+        "suggested_action": "Verify cross-reference data integrity for affected account"
+      },
+      {
+        "error_code": "ERR-INT-004",
+        "condition": "Disclosure group record not found for account group and transaction codes",
+        "business_impact": "Cannot determine interest rate, fallback to default attempted",
+        "suggested_action": "Verify disclosure group configuration completeness, ensure default rates exist"
+      },
+      {
+        "error_code": "ERR-INT-005",
+        "condition": "Default disclosure group record not found",
+        "business_impact": "Cannot calculate interest for transaction category, processing continues with next record",
+        "suggested_action": "Configure default interest rates for all transaction type and category combinations"
+      },
+      {
+        "error_code": "ERR-INT-006",
+        "condition": "Account record update fails",
+        "business_impact": "Interest calculated but not posted to account balance, data inconsistency created",
+        "suggested_action": "Investigate account record locking or data source issues, may require manual correction"
+      },
+      {
+        "error_code": "ERR-INT-007",
+        "condition": "Transaction record write fails",
+        "business_impact": "Interest calculated but transaction not recorded, audit trail incomplete",
+        "suggested_action": "Verify transaction output destination availability and retry"
+      },
+      {
+        "error_code": "ERR-INT-008",
+        "condition": "Processing date parameter missing or invalid",
+        "business_impact": "Cannot generate valid transaction IDs, batch processing cannot start",
+        "suggested_action": "Provide valid processing date parameter in correct format"
+      }
+    ]
+  },
+  "frontend": {
+    "screens": [],
+    "reports": [
+      {
+        "name": "Interest Calculation Processing Summary",
+        "description": "Summary of interest calculations performed during batch execution",
+        "type": "batch_log",
+        "data_sources": [
+          "Processing counters",
+          "Transaction records generated"
+        ],
+        "filters": [],
+        "columns": [
+          {
+            "name": "Records Processed",
+            "data_field": "record_count",
+            "format": "numeric",
+            "aggregation": "count"
+          },
+          {
+            "name": "Transactions Generated",
+            "data_field": "transaction_suffix",
+            "format": "numeric",
+            "aggregation": "count"
+          },
+          {
+            "name": "Processing Date",
+            "data_field": "processing_date",
+            "format": "date",
+            "aggregation": null
+          }
+        ],
+        "sorting": [],
+        "grouping": []
+      }
+    ],
+    "navigation_flow": [],
+    "user_messages": [
+      {
+        "code": "MSG-INT-001",
+        "type": "error",
+        "message": "ERROR OPENING TRANSACTION CATEGORY BALANCE",
+        "context": "Data source initialization failed"
+      },
+      {
+        "code": "MSG-INT-002",
+        "type": "error",
+        "message": "ERROR OPENING CROSS REF FILE",
+        "context": "Cross-reference data source initialization failed"
+      },
+      {
+        "code": "MSG-INT-003",
+        "type": "error",
+        "message": "ERROR OPENING DALY REJECTS FILE",
+        "context": "Disclosure group data source initialization failed"
+      },
+      {
+        "code": "MSG-INT-004",
+        "type": "error",
+        "message": "ERROR OPENING ACCOUNT MASTER FILE",
+        "context": "Account master data source initialization failed"
+      },
+      {
+        "code": "MSG-INT-005",
+        "type": "error",
+        "message": "ERROR OPENING TRANSACTION FILE",
+        "context": "Transaction output destination initialization failed"
+      },
+      {
+        "code": "MSG-INT-006",
+        "type": "warning",
+        "message": "DISCLOSURE GROUP RECORD MISSING",
+        "context": "Interest rate not found for specific account group"
+      },
+      {
+        "code": "MSG-INT-007",
+        "type": "info",
+        "message": "TRY WITH DEFAULT GROUP CODE",
+        "context": "Attempting fallback to default interest rate configuration"
+      },
+      {
+        "code": "MSG-INT-008",
+        "type": "error",
+        "message": "ERROR READING DISCLOSURE GROUP FILE",
+        "context": "Disclosure group data access failed"
+      },
+      {
+        "code": "MSG-INT-009",
+        "type": "error",
+        "message": "ERROR READING DEFAULT DISCLOSURE GROUP",
+        "context": "Default interest rate configuration not found"
+      },
+      {
+        "code": "MSG-INT-010",
+        "type": "error",
+        "message": "ERROR RE-WRITING ACCOUNT FILE",
+        "context": "Account balance update failed"
+      },
+      {
+        "code": "MSG-INT-011",
+        "type": "error",
+        "message": "ERROR WRITING TRANSACTION RECORD",
+        "context": "Interest transaction record creation failed"
+      },
+      {
+        "code": "MSG-INT-012",
+        "type": "error",
+        "message": "ERROR CLOSING TRANSACTION BALANCE FILE",
+        "context": "Data source closure failed"
+      },
+      {
+        "code": "MSG-INT-013",
+        "type": "error",
+        "message": "ERROR CLOSING CROSS REF FILE",
+        "context": "Cross-reference data source closure failed"
+      },
+      {
+        "code": "MSG-INT-014",
+        "type": "error",
+        "message": "ERROR CLOSING DISCLOSURE GROUP FILE",
+        "context": "Disclosure group data source closure failed"
+      },
+      {
+        "code": "MSG-INT-015",
+        "type": "error",
+        "message": "ERROR CLOSING ACCOUNT FILE",
+        "context": "Account master data source closure failed"
+      },
+      {
+        "code": "MSG-INT-016",
+        "type": "error",
+        "message": "ERROR CLOSING TRANSACTION FILE",
+        "context": "Transaction output destination closure failed"
+      },
+      {
+        "code": "MSG-INT-017",
+        "type": "info",
+        "message": "END OF EXECUTION OF PROGRAM CBACT04C",
+        "context": "Batch processing completed successfully"
+      }
+    ]
+  },
+  "data_flows": [
+    {
+      "name": "Transaction Category Balance to Interest Calculation",
+      "description": "Flow of transaction category balance data into interest calculation process",
+      "source": "Transaction Category Balance Data Source",
+      "destination": "Interest Calculation Engine",
+      "data_elements": [
+        "account_id",
+        "transaction_type_code",
+        "transaction_category_code",
+        "balance_amount"
+      ],
+      "transformations": [
+        "Sequential read of all records",
+        "Grouping by account_id for batch processing"
+      ]
+    },
+    {
+      "name": "Account Group to Interest Rate Configuration",
+      "description": "Lookup of interest rates based on account classification",
+      "source": "Account Master Record",
+      "destination": "Disclosure Group Configuration",
+      "data_elements": [
+        "account_group_id",
+        "transaction_type_code",
+        "transaction_category_code"
+      ],
+      "transformations": [
+        "Composite key construction for lookup",
+        "Fallback to DEFAULT group if primary lookup fails"
+      ]
+    },
+    {
+      "name": "Interest Calculation to Transaction Generation",
+      "description": "Conversion of calculated interest into transaction records",
+      "source": "Interest Calculation Engine",
+      "destination": "Transaction Output System",
+      "data_elements": [
+        "monthly_interest_amount",
+        "account_id",
+        "card_number",
+        "processing_date"
+      ],
+      "transformations": [
+        "Generation of unique transaction ID",
+        "Setting of transaction classification codes (type: 01, category: 05)",
+        "Creation of descriptive text with account reference",
+        "Association with card number from cross-reference",
+        "Timestamp generation for audit trail"
+      ]
+    },
+    {
+      "name": "Interest Accumulation to Account Balance Update",
+      "description": "Application of total interest charges to account balance",
+      "source": "Interest Calculation Engine",
+      "destination": "Account Master Record",
+      "data_elements": [
+        "total_interest",
+        "account_id"
+      ],
+      "transformations": [
+        "Addition of total interest to current balance",
+        "Reset of current cycle credit to zero",
+        "Reset of current cycle debit to zero"
+      ]
+    },
+    {
+      "name": "Cross-Reference to Transaction Association",
+      "description": "Linking of card numbers to interest transactions",
+      "source": "Card Cross-Reference Data Store",
+      "destination": "Transaction Record",
+      "data_elements": [
+        "account_id",
+        "card_number"
+      ],
+      "transformations": [
+        "Lookup by account_id",
+        "Extraction of card_number for transaction"
+      ]
+    }
+  ],
+  "business_constraints": [
+    {
+      "type": "Processing Frequency",
+      "description": "Interest calculations must be performed monthly as part of billing cycle",
+      "impact": "Defines batch execution schedule and data availability requirements"
+    },
+    {
+      "type": "Data Consistency",
+      "description": "Transaction category balances must represent complete end-of-cycle amounts",
+      "impact": "Requires prerequisite processes to complete before interest calculation"
+    },
+    {
+      "type": "Rate Configuration Completeness",
+      "description": "Default interest rates must exist for all transaction type and category combinations",
+      "impact": "Ensures all balances can be processed even when specific group rates are missing"
+    },
+    {
+      "type": "Account Balance Integrity",
+      "description": "Account balance updates must be atomic with transaction generation",
+      "impact": "Requires transactional processing or compensating error handling"
+    },
+    {
+      "type": "Audit Trail Requirements",
+      "description": "All generated interest transactions must have unique identifiers and complete timestamps",
+      "impact": "Mandates transaction ID generation logic and timestamp capture"
+    },
+    {
+      "type": "Billing Cycle Reset",
+      "description": "Current cycle credit and debit amounts must be reset to zero after interest posting",
+      "impact": "Ensures clean start for next billing cycle tracking"
+    },
+    {
+      "type": "Interest Rate Precision",
+      "description": "Interest calculations must use precise division by 1200 for annual-to-monthly conversion",
+      "impact": "Defines mathematical formula that must be preserved in modernized system"
+    },
+    {
+      "type": "Sequential Processing Order",
+      "description": "Transaction category balances must be processed in account ID sequence",
+      "impact": "May require data sorting or indexed access in modernized architecture"
+    },
+    {
+      "type": "System-Generated Transaction Classification",
+      "description": "Interest transactions must use type code '01' and category code '05'",
+      "impact": "Defines transaction classification scheme that must be consistent across system"
+    },
+    {
+      "type": "Processing Date Parameter",
+      "description": "Batch execution requires processing date parameter for transaction dating",
+      "impact": "Defines external input requirement and parameter validation needs"
+    }
+  ]
+}

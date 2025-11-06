@@ -1,0 +1,621 @@
+{
+  "application_metadata": {
+    "name": "CBACT01C - Account Data Reader and Display",
+    "description": "Batch data extraction and reporting utility for account information that reads and displays complete account records for verification, reporting, and administrative purposes",
+    "domain": "account-and-customer"
+  },
+  "backend": {
+    "business_entities": [
+      {
+        "name": "Account",
+        "description": "Core account entity containing financial and administrative information for customer accounts",
+        "attributes": [
+          {
+            "name": "account_id",
+            "type": "numeric",
+            "length": 11,
+            "required": true,
+            "description": "Unique identifier for each account record, serves as primary key"
+          },
+          {
+            "name": "active_status",
+            "type": "character",
+            "length": 1,
+            "required": true,
+            "description": "Indicates whether the account is currently active or inactive (typically 'A' for active, 'I' for inactive)"
+          },
+          {
+            "name": "current_balance",
+            "type": "decimal",
+            "length": 12,
+            "required": true,
+            "description": "Current monetary balance of the account, can be positive or negative (10 digits + 2 decimal places)"
+          },
+          {
+            "name": "credit_limit",
+            "type": "decimal",
+            "length": 12,
+            "required": true,
+            "description": "Maximum credit amount allowed for the account (10 digits + 2 decimal places)"
+          },
+          {
+            "name": "cash_credit_limit",
+            "type": "decimal",
+            "length": 12,
+            "required": true,
+            "description": "Maximum cash advance amount allowed for the account, typically lower than credit limit (10 digits + 2 decimal places)"
+          },
+          {
+            "name": "open_date",
+            "type": "date",
+            "length": 10,
+            "required": true,
+            "description": "Date when the account was first opened"
+          },
+          {
+            "name": "expiration_date",
+            "type": "date",
+            "length": 10,
+            "required": false,
+            "description": "Date when the account expires or needs renewal, may be blank for accounts without expiration"
+          },
+          {
+            "name": "reissue_date",
+            "type": "date",
+            "length": 10,
+            "required": false,
+            "description": "Date when the account was last reissued or renewed, used for tracking account lifecycle events"
+          },
+          {
+            "name": "current_cycle_credit",
+            "type": "decimal",
+            "length": 12,
+            "required": true,
+            "description": "Total credit transactions for current billing cycle, resets at each billing cycle (10 digits + 2 decimal places)"
+          },
+          {
+            "name": "current_cycle_debit",
+            "type": "decimal",
+            "length": 12,
+            "required": true,
+            "description": "Total debit transactions for current billing cycle, resets at each billing cycle (10 digits + 2 decimal places)"
+          },
+          {
+            "name": "address_zip_code",
+            "type": "character",
+            "length": 10,
+            "required": false,
+            "description": "ZIP or postal code associated with account address, used for geographic and regulatory purposes"
+          },
+          {
+            "name": "group_id",
+            "type": "character",
+            "length": 10,
+            "required": false,
+            "description": "Identifier linking account to specific group or category for classification and reporting"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "AccountGroup",
+            "relationship_type": "belongs_to",
+            "cardinality": "many_to_one"
+          }
+        ]
+      }
+    ],
+    "business_rules": [
+      {
+        "id": "BR-CBACT01C-001",
+        "name": "Sequential Account Processing",
+        "description": "All account records must be processed sequentially from beginning to end of the account dataset",
+        "category": "data_processing",
+        "logic": "Process all account records in sequential order without filtering or selection criteria",
+        "conditions": [
+          "Account data source is accessible",
+          "No end-of-data condition has been reached"
+        ],
+        "actions": [
+          "Read next account record",
+          "Display complete account information",
+          "Continue until all records are processed"
+        ]
+      },
+      {
+        "id": "BR-CBACT01C-002",
+        "name": "Account Balance Handling",
+        "description": "Account balances can be positive or negative values representing credit or debit positions",
+        "category": "financial_data",
+        "logic": "Current balance is stored as signed numeric field allowing both positive (credit) and negative (debit) values",
+        "conditions": [
+          "Balance is numeric",
+          "Balance includes two decimal places for precision"
+        ],
+        "actions": [
+          "Display balance with appropriate sign",
+          "Maintain precision to two decimal places"
+        ]
+      },
+      {
+        "id": "BR-CBACT01C-003",
+        "name": "Credit Limit Management",
+        "description": "Each account has two distinct credit limits: regular credit limit and cash credit limit",
+        "category": "financial_limits",
+        "logic": "Cash credit limit is maintained separately from regular credit limit and typically set at lower amount",
+        "conditions": [
+          "Both limits are defined as signed numeric fields",
+          "Cash credit limit typically lower than regular credit limit"
+        ],
+        "actions": [
+          "Store and display both credit limit types",
+          "Allow independent management of each limit type"
+        ]
+      },
+      {
+        "id": "BR-CBACT01C-004",
+        "name": "Billing Cycle Tracking",
+        "description": "Current cycle credit and debit amounts track financial activity within the current billing cycle",
+        "category": "billing_cycle",
+        "logic": "Current cycle amounts accumulate transactions during billing period and reset at cycle boundaries",
+        "conditions": [
+          "Within active billing cycle",
+          "Transactions are posted to account"
+        ],
+        "actions": [
+          "Track credit transactions in current cycle credit field",
+          "Track debit transactions in current cycle debit field",
+          "Reset both fields at billing cycle end"
+        ]
+      },
+      {
+        "id": "BR-CBACT01C-005",
+        "name": "Account Lifecycle Tracking",
+        "description": "Account lifecycle is tracked through open date, expiration date, and reissue date",
+        "category": "account_lifecycle",
+        "logic": "Three date fields track when account was opened, when it expires, and when it was last reissued",
+        "conditions": [
+          "Open date is mandatory",
+          "Expiration and reissue dates are optional"
+        ],
+        "actions": [
+          "Record account opening date at creation",
+          "Track expiration date for accounts with renewal requirements",
+          "Update reissue date when account is renewed"
+        ]
+      },
+      {
+        "id": "BR-CBACT01C-006",
+        "name": "Account Grouping",
+        "description": "Accounts can be assigned to groups for classification and reporting purposes",
+        "category": "account_classification",
+        "logic": "Group identifier links account to specific category or organizational grouping",
+        "conditions": [
+          "Group ID is optional",
+          "Group ID is 10-character identifier"
+        ],
+        "actions": [
+          "Assign group ID when categorization is needed",
+          "Use group ID for reporting and analysis"
+        ]
+      }
+    ],
+    "validations": [
+      {
+        "field": "account_id",
+        "rule": "Must be 11-digit numeric value and unique across all accounts",
+        "error_message": "Invalid account identifier",
+        "severity": "error"
+      },
+      {
+        "field": "active_status",
+        "rule": "Must be single character, typically 'A' for active or 'I' for inactive",
+        "error_message": "Invalid account status",
+        "severity": "error"
+      },
+      {
+        "field": "current_balance",
+        "rule": "Must be numeric with exactly 2 decimal places, can be positive or negative",
+        "error_message": "Invalid balance format",
+        "severity": "error"
+      },
+      {
+        "field": "credit_limit",
+        "rule": "Must be numeric with exactly 2 decimal places",
+        "error_message": "Invalid credit limit format",
+        "severity": "error"
+      },
+      {
+        "field": "cash_credit_limit",
+        "rule": "Must be numeric with exactly 2 decimal places, typically less than or equal to credit limit",
+        "error_message": "Invalid cash credit limit format",
+        "severity": "error"
+      },
+      {
+        "field": "open_date",
+        "rule": "Must be valid date in 10-character format",
+        "error_message": "Invalid opening date",
+        "severity": "error"
+      },
+      {
+        "field": "expiration_date",
+        "rule": "Must be valid date in 10-character format when provided",
+        "error_message": "Invalid expiration date",
+        "severity": "warning"
+      },
+      {
+        "field": "reissue_date",
+        "rule": "Must be valid date in 10-character format when provided",
+        "error_message": "Invalid reissue date",
+        "severity": "warning"
+      },
+      {
+        "field": "current_cycle_credit",
+        "rule": "Must be numeric with exactly 2 decimal places",
+        "error_message": "Invalid current cycle credit format",
+        "severity": "error"
+      },
+      {
+        "field": "current_cycle_debit",
+        "rule": "Must be numeric with exactly 2 decimal places",
+        "error_message": "Invalid current cycle debit format",
+        "severity": "error"
+      },
+      {
+        "field": "address_zip_code",
+        "rule": "Must be 10-character postal code format when provided",
+        "error_message": "Invalid ZIP code format",
+        "severity": "warning"
+      },
+      {
+        "field": "group_id",
+        "rule": "Must be 10-character identifier when provided",
+        "error_message": "Invalid group identifier",
+        "severity": "warning"
+      }
+    ],
+    "calculations": [],
+    "workflows": [
+      {
+        "name": "Account Data Extraction Process",
+        "description": "Sequential workflow to extract and display all account records from the system",
+        "steps": [
+          {
+            "step_number": 1,
+            "action": "Initialize account data extraction process",
+            "conditions": [
+              "Account data source is accessible"
+            ],
+            "next_step": "2"
+          },
+          {
+            "step_number": 2,
+            "action": "Establish connection to account data source",
+            "conditions": [
+              "Data source connection successful"
+            ],
+            "next_step": "3"
+          },
+          {
+            "step_number": 3,
+            "action": "Begin sequential record processing loop",
+            "conditions": [
+              "More records available to process"
+            ],
+            "next_step": "4"
+          },
+          {
+            "step_number": 4,
+            "action": "Retrieve next account record in sequence",
+            "conditions": [
+              "Record retrieval successful",
+              "Not end of data"
+            ],
+            "next_step": "5"
+          },
+          {
+            "step_number": 5,
+            "action": "Display complete account record with all fields",
+            "conditions": [
+              "Record data is valid"
+            ],
+            "next_step": "3"
+          },
+          {
+            "step_number": 6,
+            "action": "Detect end of data condition",
+            "conditions": [
+              "All records have been processed"
+            ],
+            "next_step": "7"
+          },
+          {
+            "step_number": 7,
+            "action": "Close connection to account data source",
+            "conditions": [
+              "Processing complete"
+            ],
+            "next_step": "8"
+          },
+          {
+            "step_number": 8,
+            "action": "Complete account data extraction process",
+            "conditions": [
+              "All cleanup completed successfully"
+            ],
+            "next_step": "end"
+          }
+        ]
+      }
+    ],
+    "integrations": [
+      {
+        "name": "Account Data Repository",
+        "type": "data_source",
+        "purpose": "Primary source of account information for extraction and reporting",
+        "data_exchanged": [
+          "Account records with complete account details",
+          "Account identifiers",
+          "Financial data",
+          "Lifecycle dates",
+          "Classification information"
+        ],
+        "trigger_conditions": [
+          "Batch extraction process initiated",
+          "Administrative reporting required",
+          "Data verification needed"
+        ]
+      }
+    ],
+    "security": {
+      "roles": [
+        "System Administrator",
+        "Data Administrator",
+        "Batch Process Operator"
+      ],
+      "permissions": [
+        {
+          "role": "System Administrator",
+          "resource": "Account Data",
+          "actions": [
+            "read",
+            "extract",
+            "report"
+          ]
+        },
+        {
+          "role": "Data Administrator",
+          "resource": "Account Data",
+          "actions": [
+            "read",
+            "extract",
+            "report"
+          ]
+        },
+        {
+          "role": "Batch Process Operator",
+          "resource": "Account Data",
+          "actions": [
+            "read",
+            "extract"
+          ]
+        }
+      ],
+      "authentication_requirements": [
+        "Authorized batch job execution",
+        "System-level access credentials",
+        "Data access permissions for account repository"
+      ]
+    },
+    "error_handling": [
+      {
+        "error_code": "ERR-ACCT-001",
+        "condition": "Unable to establish connection to account data source",
+        "business_impact": "Account data extraction cannot proceed, reporting unavailable",
+        "suggested_action": "Verify data source availability and access permissions, retry operation"
+      },
+      {
+        "error_code": "ERR-ACCT-002",
+        "condition": "Error reading account record during sequential processing",
+        "business_impact": "Incomplete account data extraction, potential data integrity issues",
+        "suggested_action": "Check data source integrity, log error details, notify system administrator"
+      },
+      {
+        "error_code": "ERR-ACCT-003",
+        "condition": "Unable to properly close connection to account data source",
+        "business_impact": "Potential resource leak, may affect subsequent processing",
+        "suggested_action": "Log error, verify system resources, investigate data source status"
+      },
+      {
+        "error_code": "INFO-ACCT-001",
+        "condition": "End of account data reached",
+        "business_impact": "Normal completion of data extraction, all records processed",
+        "suggested_action": "Complete processing and close connections normally"
+      }
+    ]
+  },
+  "frontend": {
+    "screens": [],
+    "reports": [
+      {
+        "name": "Complete Account Data Report",
+        "description": "Comprehensive listing of all account records with complete field details for verification and administrative purposes",
+        "type": "batch_output",
+        "data_sources": [
+          "Account Data Repository"
+        ],
+        "filters": [],
+        "columns": [
+          {
+            "name": "Account ID",
+            "data_field": "account_id",
+            "format": "11-digit numeric",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account Active Status",
+            "data_field": "active_status",
+            "format": "single character",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account Current Balance",
+            "data_field": "current_balance",
+            "format": "decimal with 2 places, signed",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account Credit Limit",
+            "data_field": "credit_limit",
+            "format": "decimal with 2 places, signed",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account Cash Credit Limit",
+            "data_field": "cash_credit_limit",
+            "format": "decimal with 2 places, signed",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account Open Date",
+            "data_field": "open_date",
+            "format": "date (10 characters)",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account Expiration Date",
+            "data_field": "expiration_date",
+            "format": "date (10 characters)",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account Reissue Date",
+            "data_field": "reissue_date",
+            "format": "date (10 characters)",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account Current Cycle Credit",
+            "data_field": "current_cycle_credit",
+            "format": "decimal with 2 places, signed",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account Current Cycle Debit",
+            "data_field": "current_cycle_debit",
+            "format": "decimal with 2 places, signed",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account Group ID",
+            "data_field": "group_id",
+            "format": "10-character text",
+            "aggregation": "none"
+          }
+        ],
+        "sorting": [
+          "account_id ascending"
+        ],
+        "grouping": []
+      }
+    ],
+    "navigation_flow": [],
+    "user_messages": [
+      {
+        "code": "MSG-CBACT01C-001",
+        "type": "info",
+        "message": "START OF EXECUTION OF PROGRAM CBACT01C",
+        "context": "Program initialization - indicates beginning of account data extraction process"
+      },
+      {
+        "code": "MSG-CBACT01C-002",
+        "type": "info",
+        "message": "END OF EXECUTION OF PROGRAM CBACT01C",
+        "context": "Program completion - indicates successful completion of account data extraction process"
+      },
+      {
+        "code": "MSG-CBACT01C-003",
+        "type": "error",
+        "message": "ERROR OPENING ACCTFILE",
+        "context": "Data source connection failure - unable to establish connection to account data repository"
+      },
+      {
+        "code": "MSG-CBACT01C-004",
+        "type": "error",
+        "message": "ERROR READING ACCOUNT FILE",
+        "context": "Data retrieval failure - error occurred while reading account record during sequential processing"
+      },
+      {
+        "code": "MSG-CBACT01C-005",
+        "type": "error",
+        "message": "ERROR CLOSING ACCOUNT FILE",
+        "context": "Data source disconnection failure - unable to properly close connection to account data repository"
+      },
+      {
+        "code": "MSG-CBACT01C-006",
+        "type": "error",
+        "message": "ABENDING PROGRAM",
+        "context": "Critical error termination - program ending abnormally due to unrecoverable error condition"
+      }
+    ]
+  },
+  "data_flows": [
+    {
+      "name": "Account Data Extraction Flow",
+      "description": "Sequential flow of account data from repository to output display",
+      "source": "Account Data Repository",
+      "destination": "Report Output",
+      "data_elements": [
+        "account_id",
+        "active_status",
+        "current_balance",
+        "credit_limit",
+        "cash_credit_limit",
+        "open_date",
+        "expiration_date",
+        "reissue_date",
+        "current_cycle_credit",
+        "current_cycle_debit",
+        "address_zip_code",
+        "group_id"
+      ],
+      "transformations": [
+        "Format numeric fields for display with appropriate decimal places",
+        "Format date fields for consistent presentation",
+        "Apply field labels for human readability",
+        "Add record separator lines between account records"
+      ]
+    }
+  ],
+  "business_constraints": [
+    {
+      "type": "data_integrity",
+      "description": "Account identifiers must be unique across entire account dataset",
+      "impact": "Ensures each account can be uniquely identified and prevents duplicate account records"
+    },
+    {
+      "type": "financial_precision",
+      "description": "All monetary amounts must maintain exactly 2 decimal places for cent precision",
+      "impact": "Ensures accurate financial calculations and reporting without rounding errors"
+    },
+    {
+      "type": "credit_limit_hierarchy",
+      "description": "Cash credit limit is typically lower than regular credit limit",
+      "impact": "Reflects business policy that cash advances have more restrictive limits than regular credit"
+    },
+    {
+      "type": "billing_cycle_boundaries",
+      "description": "Current cycle credit and debit amounts reset at billing cycle boundaries",
+      "impact": "Ensures accurate tracking of transaction activity within defined billing periods"
+    },
+    {
+      "type": "account_lifecycle",
+      "description": "Account open date is mandatory, but expiration and reissue dates are optional",
+      "impact": "Allows flexibility for different account types while ensuring creation date is always known"
+    },
+    {
+      "type": "sequential_processing",
+      "description": "All account records must be processed in sequential order without filtering",
+      "impact": "Ensures complete data extraction and prevents selective or partial reporting"
+    }
+  ]
+}

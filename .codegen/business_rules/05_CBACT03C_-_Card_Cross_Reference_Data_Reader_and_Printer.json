@@ -1,0 +1,560 @@
+{
+  "application_metadata": {
+    "name": "CBACT03C - Card Cross Reference Data Reader and Printer",
+    "description": "Batch data extraction and reporting utility for card cross-reference data that displays relationships between cards, customers, and accounts for data verification, audit, and administrative purposes",
+    "domain": "account-and-customer"
+  },
+  "backend": {
+    "business_entities": [
+      {
+        "name": "CardCrossReference",
+        "description": "Cross-reference entity that establishes relationships between cards, customers, and accounts within the system",
+        "attributes": [
+          {
+            "name": "card_number",
+            "type": "alphanumeric",
+            "length": 16,
+            "required": true,
+            "description": "Unique card number identifier serving as primary key for cross-reference lookups"
+          },
+          {
+            "name": "customer_id",
+            "type": "numeric",
+            "length": 9,
+            "required": true,
+            "description": "Customer identification number linking the card to a specific customer record"
+          },
+          {
+            "name": "account_id",
+            "type": "numeric",
+            "length": 11,
+            "required": true,
+            "description": "Account identification number linking the card to a specific account record"
+          }
+        ],
+        "relationships": [
+          {
+            "related_entity": "Card",
+            "relationship_type": "references",
+            "cardinality": "one_to_one"
+          },
+          {
+            "related_entity": "Customer",
+            "relationship_type": "references",
+            "cardinality": "many_to_one"
+          },
+          {
+            "related_entity": "Account",
+            "relationship_type": "references",
+            "cardinality": "many_to_one"
+          }
+        ]
+      }
+    ],
+    "business_rules": [
+      {
+        "id": "BR-CBACT03C-001",
+        "name": "Sequential Cross-Reference Processing",
+        "description": "All card cross-reference records must be processed sequentially from beginning to end without filtering or selection",
+        "category": "data_processing",
+        "logic": "Process every cross-reference record in the data source sequentially, displaying complete relationship information for each record",
+        "conditions": [
+          "Cross-reference data source is accessible",
+          "No end-of-data condition has been reached"
+        ],
+        "actions": [
+          "Read next cross-reference record in sequence",
+          "Display complete card-customer-account relationship",
+          "Continue until all records are processed"
+        ]
+      },
+      {
+        "id": "BR-CBACT03C-002",
+        "name": "Card-Customer-Account Relationship Integrity",
+        "description": "Each cross-reference record must maintain valid references to card, customer, and account entities",
+        "category": "data_integrity",
+        "logic": "Cross-reference entity serves as junction table linking cards to customers and accounts, ensuring referential integrity across entities",
+        "conditions": [
+          "Card number is valid 16-character identifier",
+          "Customer ID is valid 9-digit numeric",
+          "Account ID is valid 11-digit numeric"
+        ],
+        "actions": [
+          "Store card number as primary key",
+          "Maintain foreign key reference to customer",
+          "Maintain foreign key reference to account",
+          "Ensure all three identifiers are present and valid"
+        ]
+      },
+      {
+        "id": "BR-CBACT03C-003",
+        "name": "Cross-Reference Data Completeness",
+        "description": "Each cross-reference record must contain complete relationship information with all three key identifiers populated",
+        "category": "data_integrity",
+        "logic": "Complete 50-byte cross-reference record includes card number (16 bytes) and associated cross-reference data (34 bytes) containing customer and account identifiers",
+        "conditions": [
+          "Cross-reference record exists",
+          "All mandatory fields are populated"
+        ],
+        "actions": [
+          "Validate card number is present",
+          "Validate customer ID is present",
+          "Validate account ID is present",
+          "Reject incomplete cross-reference records"
+        ]
+      },
+      {
+        "id": "BR-CBACT03C-004",
+        "name": "Cross-Reference Uniqueness",
+        "description": "Card numbers serve as unique primary keys in the cross-reference data, ensuring one-to-one mapping from card to customer-account combination",
+        "category": "data_integrity",
+        "logic": "Each card number appears only once in cross-reference data, establishing single customer-account association per card",
+        "conditions": [
+          "Card number is provided",
+          "Cross-reference record is being stored"
+        ],
+        "actions": [
+          "Verify card number uniqueness",
+          "Prevent duplicate card number entries",
+          "Ensure data consistency for card relationships"
+        ]
+      },
+      {
+        "id": "BR-CBACT03C-005",
+        "name": "Comprehensive Relationship Audit",
+        "description": "Cross-reference data extraction provides complete visibility into all card-customer-account relationships for audit and verification purposes",
+        "category": "audit_reporting",
+        "logic": "Sequential processing of entire cross-reference dataset ensures no relationships are missed during audit or verification activities",
+        "conditions": [
+          "Audit or verification activity initiated",
+          "Complete dataset access required"
+        ],
+        "actions": [
+          "Process all cross-reference records sequentially",
+          "Display each relationship for review",
+          "Identify any orphaned or invalid relationships",
+          "Support compliance and audit requirements"
+        ]
+      }
+    ],
+    "validations": [
+      {
+        "field": "card_number",
+        "rule": "Must be 16-character alphanumeric value and unique across all cross-reference records",
+        "error_message": "Invalid card number in cross-reference",
+        "severity": "error"
+      },
+      {
+        "field": "customer_id",
+        "rule": "Must be 9-digit numeric value referencing valid customer record",
+        "error_message": "Invalid customer identifier in cross-reference",
+        "severity": "error"
+      },
+      {
+        "field": "account_id",
+        "rule": "Must be 11-digit numeric value referencing valid account record",
+        "error_message": "Invalid account identifier in cross-reference",
+        "severity": "error"
+      },
+      {
+        "field": "card_customer_account_triad",
+        "rule": "All three identifiers (card, customer, account) must be present and valid for complete cross-reference",
+        "error_message": "Incomplete cross-reference relationship data",
+        "severity": "error"
+      }
+    ],
+    "calculations": [],
+    "workflows": [
+      {
+        "name": "Card Cross-Reference Data Extraction Process",
+        "description": "Sequential workflow to extract and display all card cross-reference records showing relationships between cards, customers, and accounts",
+        "steps": [
+          {
+            "step_number": 1,
+            "action": "Initialize cross-reference data extraction process",
+            "conditions": [
+              "Cross-reference data source is accessible",
+              "Processing authorization granted"
+            ],
+            "next_step": "2"
+          },
+          {
+            "step_number": 2,
+            "action": "Establish connection to cross-reference data source",
+            "conditions": [
+              "Data source connection successful",
+              "Read-only access mode established"
+            ],
+            "next_step": "3"
+          },
+          {
+            "step_number": 3,
+            "action": "Begin sequential record processing loop",
+            "conditions": [
+              "More records available to process",
+              "End-of-file not reached"
+            ],
+            "next_step": "4"
+          },
+          {
+            "step_number": 4,
+            "action": "Retrieve next cross-reference record in sequence",
+            "conditions": [
+              "Record retrieval successful",
+              "Not end of data"
+            ],
+            "next_step": "5"
+          },
+          {
+            "step_number": 5,
+            "action": "Display complete cross-reference record with card-customer-account relationship",
+            "conditions": [
+              "Record data is valid",
+              "All mandatory fields present"
+            ],
+            "next_step": "3"
+          },
+          {
+            "step_number": 6,
+            "action": "Detect end of data condition",
+            "conditions": [
+              "All records have been processed",
+              "No more records available"
+            ],
+            "next_step": "7"
+          },
+          {
+            "step_number": 7,
+            "action": "Close connection to cross-reference data source",
+            "conditions": [
+              "Processing complete",
+              "All records displayed"
+            ],
+            "next_step": "8"
+          },
+          {
+            "step_number": 8,
+            "action": "Complete cross-reference data extraction process",
+            "conditions": [
+              "All cleanup completed successfully",
+              "Resources released"
+            ],
+            "next_step": "end"
+          }
+        ]
+      }
+    ],
+    "integrations": [
+      {
+        "name": "Card Cross-Reference Repository",
+        "type": "data_source",
+        "purpose": "Primary source of card-customer-account relationship data for extraction, reporting, and administrative operations",
+        "data_exchanged": [
+          "Cross-reference records with relationship data",
+          "Card numbers (unique identifiers)",
+          "Customer identifiers",
+          "Account identifiers",
+          "Complete relationship triads"
+        ],
+        "trigger_conditions": [
+          "Batch extraction process initiated",
+          "Administrative reporting required",
+          "Data verification needed",
+          "Audit or compliance review required",
+          "Relationship integrity validation needed"
+        ]
+      },
+      {
+        "name": "Card Management System",
+        "type": "related_entity",
+        "purpose": "Provides card information referenced by cross-reference records through card_number foreign key",
+        "data_exchanged": [
+          "Card numbers",
+          "Card validation data"
+        ],
+        "trigger_conditions": [
+          "Cross-reference validation needed",
+          "Card relationship verification required"
+        ]
+      },
+      {
+        "name": "Customer Management System",
+        "type": "related_entity",
+        "purpose": "Provides customer information referenced by cross-reference records through customer_id foreign key",
+        "data_exchanged": [
+          "Customer identifiers",
+          "Customer validation data"
+        ],
+        "trigger_conditions": [
+          "Cross-reference validation needed",
+          "Customer relationship verification required"
+        ]
+      },
+      {
+        "name": "Account Management System",
+        "type": "related_entity",
+        "purpose": "Provides account information referenced by cross-reference records through account_id foreign key",
+        "data_exchanged": [
+          "Account identifiers",
+          "Account validation data"
+        ],
+        "trigger_conditions": [
+          "Cross-reference validation needed",
+          "Account relationship verification required"
+        ]
+      }
+    ],
+    "security": {
+      "roles": [
+        "System Administrator",
+        "Data Administrator",
+        "Audit Officer",
+        "Batch Process Operator"
+      ],
+      "permissions": [
+        {
+          "role": "System Administrator",
+          "resource": "Card Cross-Reference Data",
+          "actions": [
+            "read",
+            "extract",
+            "report",
+            "verify"
+          ]
+        },
+        {
+          "role": "Data Administrator",
+          "resource": "Card Cross-Reference Data",
+          "actions": [
+            "read",
+            "extract",
+            "report",
+            "verify"
+          ]
+        },
+        {
+          "role": "Audit Officer",
+          "resource": "Card Cross-Reference Data",
+          "actions": [
+            "read",
+            "report",
+            "verify"
+          ]
+        },
+        {
+          "role": "Batch Process Operator",
+          "resource": "Card Cross-Reference Data",
+          "actions": [
+            "read",
+            "extract"
+          ]
+        }
+      ],
+      "authentication_requirements": [
+        "Authorized batch job execution",
+        "System-level access credentials",
+        "Data access permissions for cross-reference repository",
+        "Audit trail logging for compliance"
+      ]
+    },
+    "error_handling": [
+      {
+        "error_code": "ERR-XREF-001",
+        "condition": "Unable to establish connection to cross-reference data source",
+        "business_impact": "Cross-reference data extraction cannot proceed, relationship reporting unavailable, audit activities blocked",
+        "suggested_action": "Verify data source availability and access permissions, check system connectivity, retry operation"
+      },
+      {
+        "error_code": "ERR-XREF-002",
+        "condition": "Error reading cross-reference record during sequential processing",
+        "business_impact": "Incomplete cross-reference data extraction, potential relationship integrity issues, missing relationships from report",
+        "suggested_action": "Check data source integrity, log error details, identify corrupted records, notify system administrator"
+      },
+      {
+        "error_code": "ERR-XREF-003",
+        "condition": "Unable to properly close connection to cross-reference data source",
+        "business_impact": "Potential resource leak, may affect subsequent processing, system resources not released",
+        "suggested_action": "Log error, verify system resources, investigate data source status, monitor for resource exhaustion"
+      },
+      {
+        "error_code": "INFO-XREF-001",
+        "condition": "End of cross-reference data reached",
+        "business_impact": "Normal completion of data extraction, all relationship records processed successfully",
+        "suggested_action": "Complete processing and close connections normally, verify expected record count"
+      },
+      {
+        "error_code": "WARN-XREF-001",
+        "condition": "Cross-reference record contains invalid or orphaned relationship references",
+        "business_impact": "Data integrity issue indicating card, customer, or account referenced may not exist in respective systems",
+        "suggested_action": "Flag record for investigation, validate foreign key references, perform data reconciliation"
+      }
+    ]
+  },
+  "frontend": {
+    "screens": [],
+    "reports": [
+      {
+        "name": "Complete Card Cross-Reference Report",
+        "description": "Comprehensive listing of all card cross-reference records showing relationships between cards, customers, and accounts for verification, audit, and administrative purposes",
+        "type": "batch_output",
+        "data_sources": [
+          "Card Cross-Reference Repository"
+        ],
+        "filters": [],
+        "columns": [
+          {
+            "name": "Card Number",
+            "data_field": "card_number",
+            "format": "16-character alphanumeric",
+            "aggregation": "none"
+          },
+          {
+            "name": "Customer ID",
+            "data_field": "customer_id",
+            "format": "9-digit numeric",
+            "aggregation": "none"
+          },
+          {
+            "name": "Account ID",
+            "data_field": "account_id",
+            "format": "11-digit numeric",
+            "aggregation": "none"
+          }
+        ],
+        "sorting": [
+          "card_number ascending"
+        ],
+        "grouping": []
+      }
+    ],
+    "navigation_flow": [],
+    "user_messages": [
+      {
+        "code": "MSG-CBACT03C-001",
+        "type": "info",
+        "message": "START OF EXECUTION OF PROGRAM CBACT03C",
+        "context": "Program initialization - indicates beginning of cross-reference data extraction process"
+      },
+      {
+        "code": "MSG-CBACT03C-002",
+        "type": "info",
+        "message": "END OF EXECUTION OF PROGRAM CBACT03C",
+        "context": "Program completion - indicates successful completion of cross-reference data extraction process"
+      },
+      {
+        "code": "MSG-CBACT03C-003",
+        "type": "error",
+        "message": "ERROR OPENING XREFFILE",
+        "context": "Data source connection failure - unable to establish connection to cross-reference data repository"
+      },
+      {
+        "code": "MSG-CBACT03C-004",
+        "type": "error",
+        "message": "ERROR READING XREFFILE",
+        "context": "Data retrieval failure - error occurred while reading cross-reference record during sequential processing"
+      },
+      {
+        "code": "MSG-CBACT03C-005",
+        "type": "error",
+        "message": "ERROR CLOSING XREFFILE",
+        "context": "Data source disconnection failure - unable to properly close connection to cross-reference data repository"
+      },
+      {
+        "code": "MSG-CBACT03C-006",
+        "type": "error",
+        "message": "ABENDING PROGRAM",
+        "context": "Critical error termination - program ending abnormally due to unrecoverable error condition"
+      }
+    ]
+  },
+  "data_flows": [
+    {
+      "name": "Card Cross-Reference Data Extraction Flow",
+      "description": "Sequential flow of cross-reference data from repository to output display for administrative, audit, and verification purposes",
+      "source": "Card Cross-Reference Repository",
+      "destination": "Report Output",
+      "data_elements": [
+        "card_number",
+        "customer_id",
+        "account_id"
+      ],
+      "transformations": [
+        "Format fields for consistent display presentation",
+        "Apply field labels for human readability",
+        "Display complete cross-reference records sequentially",
+        "Provide duplicate display for audit redundancy"
+      ]
+    },
+    {
+      "name": "Card-Customer-Account Relationship Flow",
+      "description": "Logical relationship flow showing how cards are linked to customers and accounts through cross-reference entity",
+      "source": "Card Entity",
+      "destination": "Customer and Account Entities",
+      "data_elements": [
+        "card_number (primary key)",
+        "customer_id (foreign key to Customer)",
+        "account_id (foreign key to Account)"
+      ],
+      "transformations": [
+        "Maintain referential integrity across entities",
+        "Validate foreign key references",
+        "Support many-to-one relationships from cards to customers",
+        "Support many-to-one relationships from cards to accounts"
+      ]
+    },
+    {
+      "name": "Cross-Reference Validation Flow",
+      "description": "Validation flow to ensure cross-reference data maintains integrity with referenced entities",
+      "source": "Card Cross-Reference Entity",
+      "destination": "Card, Customer, and Account Entities",
+      "data_elements": [
+        "card_number validation",
+        "customer_id validation",
+        "account_id validation"
+      ],
+      "transformations": [
+        "Verify card_number exists in Card entity",
+        "Verify customer_id exists in Customer entity",
+        "Verify account_id exists in Account entity",
+        "Flag orphaned or invalid references"
+      ]
+    }
+  ],
+  "business_constraints": [
+    {
+      "type": "data_integrity",
+      "description": "Card numbers must be unique across entire cross-reference dataset",
+      "impact": "Ensures each card has single customer-account association and prevents duplicate relationship records"
+    },
+    {
+      "type": "referential_integrity",
+      "description": "Each cross-reference record must reference valid card, customer, and account entities through foreign keys",
+      "impact": "Ensures relationships are valid and prevents orphaned cross-reference records pointing to non-existent entities"
+    },
+    {
+      "type": "relationship_completeness",
+      "description": "Each cross-reference record must contain all three identifiers: card number, customer ID, and account ID",
+      "impact": "Incomplete relationships indicate data integrity issues requiring investigation and correction"
+    },
+    {
+      "type": "sequential_processing",
+      "description": "All cross-reference records must be processed in sequential order without filtering",
+      "impact": "Ensures complete data extraction and prevents selective or partial reporting that could miss data integrity issues"
+    },
+    {
+      "type": "junction_table_function",
+      "description": "Cross-reference entity serves as junction table establishing many-to-many relationships between customers, accounts, and cards",
+      "impact": "Supports complex business scenarios where customers may have multiple accounts and cards, enabling flexible relationship management"
+    },
+    {
+      "type": "audit_trail_requirement",
+      "description": "Cross-reference data extraction must provide complete visibility for audit and compliance purposes",
+      "impact": "Supports regulatory compliance, fraud detection, and relationship verification activities"
+    },
+    {
+      "type": "data_verification",
+      "description": "Cross-reference data serves as verification source for card-customer-account relationships",
+      "impact": "Enables identification of data inconsistencies, orphaned records, and relationship integrity issues across system"
+    }
+  ]
+}
