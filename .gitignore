@@ -19,6 +19,9 @@ target/
 *.iml
 *.ipr
 
+## The entire .codegen directory ###
+.codegen/
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
