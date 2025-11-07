@@ -5,7 +5,7 @@ CREATE TABLE transactions (
     transaction_type VARCHAR(20) NOT NULL,
     transaction_amount DECIMAL(15, 2) NOT NULL,
     transaction_date DATE NOT NULL,
-    transaction_time TIMESTAMP WITH TIME ZONE,
+    transaction_time TIMESTAMP,
     post_date DATE,
     merchant_name VARCHAR(100),
     merchant_category VARCHAR(50),
@@ -38,8 +38,8 @@ CREATE TABLE transactions (
     interest_amount DECIMAL(10, 2) DEFAULT 0.00,
     statement_date DATE,
     billing_cycle VARCHAR(6),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (card_number, transaction_id)
 );
 

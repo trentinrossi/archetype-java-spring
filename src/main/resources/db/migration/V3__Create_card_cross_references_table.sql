@@ -19,8 +19,8 @@ CREATE TABLE card_cross_references (
     replaced_card_number VARCHAR(16),
     card_production_date DATE,
     card_mailed_date DATE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_card_cross_references_customer FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
     CONSTRAINT fk_card_cross_references_account FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE CASCADE
 );
