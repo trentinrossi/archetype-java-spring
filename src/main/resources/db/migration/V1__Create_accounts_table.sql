@@ -27,8 +27,8 @@ CREATE TABLE accounts (
     acct_group_id VARCHAR(50),
     
     -- Audit timestamps
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     -- Constraints
     CONSTRAINT chk_acct_id_length CHECK (acct_id >= 10000000000 AND acct_id <= 99999999999),
@@ -46,7 +46,9 @@ CREATE TABLE accounts (
 
 -- Create indexes for common query patterns
 CREATE INDEX idx_accounts_active_status ON accounts(acct_active_status);
-CREATE INDEX idx_accounts_group_id ON accounts(acct_group_id) WHERE acct_group_id IS NOT NULL;
+-- Note: H2 doesn't support partial indexes with WHERE clause
+-- The following index will include all rows, not just non-null acct_group_id
+CREATE INDEX idx_accounts_group_id ON accounts(acct_group_id);
 CREATE INDEX idx_accounts_expiration_date ON accounts(acct_expiration_date);
 CREATE INDEX idx_accounts_open_date ON accounts(acct_open_date);
 CREATE INDEX idx_accounts_created_at ON accounts(created_at);
@@ -56,34 +58,3 @@ CREATE INDEX idx_accounts_sequential ON accounts(acct_id ASC);
 
 -- Create index for accounts over credit limit queries
 CREATE INDEX idx_accounts_balance_limit ON accounts(acct_curr_bal, acct_credit_limit);
-
--- Add comments for documentation
-COMMENT ON TABLE accounts IS 'Customer accounts with financial and status information';
-COMMENT ON COLUMN accounts.acct_id IS 'Unique 11-digit account identifier';
-COMMENT ON COLUMN accounts.acct_active_status IS 'Account status: A=Active, I=Inactive';
-COMMENT ON COLUMN accounts.acct_curr_bal IS 'Current account balance';
-COMMENT ON COLUMN accounts.acct_credit_limit IS 'Maximum credit limit';
-COMMENT ON COLUMN accounts.acct_cash_credit_limit IS 'Maximum cash credit limit';
-COMMENT ON COLUMN accounts.acct_open_date IS 'Date when account was opened';
-COMMENT ON COLUMN accounts.acct_expiration_date IS 'Date when account expires';
-COMMENT ON COLUMN accounts.acct_reissue_date IS 'Date when account was reissued (optional)';
-COMMENT ON COLUMN accounts.acct_curr_cyc_credit IS 'Current cycle credit amount';
-COMMENT ON COLUMN accounts.acct_curr_cyc_debit IS 'Current cycle debit amount';
-COMMENT ON COLUMN accounts.acct_group_id IS 'Account group identifier for categorization';
-COMMENT ON COLUMN accounts.created_at IS 'Timestamp when record was created';
-COMMENT ON COLUMN accounts.updated_at IS 'Timestamp when record was last updated';
-
--- Create function to automatically update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_accounts_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create trigger to call the function before updates
-CREATE TRIGGER trigger_update_accounts_updated_at
-    BEFORE UPDATE ON accounts
-    FOR EACH ROW
-    EXECUTE FUNCTION update_accounts_updated_at();
