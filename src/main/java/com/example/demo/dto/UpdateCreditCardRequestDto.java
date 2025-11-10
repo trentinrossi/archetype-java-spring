@@ -1,5 +1,7 @@
 package com.example.demo.dto;
 
+import java.math.BigDecimal;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -33,8 +35,8 @@ public class UpdateCreditCardRequestDto {
     private String cardType;
     
     @Schema(description = "Credit limit for the card", example = "5000.00", required = false)
-    private Double creditLimit;
+    private BigDecimal creditLimit;
     
     @Schema(description = "Available credit on the card", example = "5000.00", required = false)
-    private Double availableCredit;
+    private BigDecimal availableCredit;
 }

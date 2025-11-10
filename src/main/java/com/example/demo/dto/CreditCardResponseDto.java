@@ -1,12 +1,14 @@
 package com.example.demo.dto;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import com.example.demo.enums.CardStatus;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 /**
  * DTO for credit card response data.
@@ -47,10 +49,10 @@ public class CreditCardResponseDto {
     private String cardType;
     
     @Schema(description = "Credit limit for the card", example = "5000.00")
-    private Double creditLimit;
+    private BigDecimal creditLimit;
     
     @Schema(description = "Available credit on the card", example = "4500.00")
-    private Double availableCredit;
+    private BigDecimal availableCredit;
     
     @Schema(description = "Whether the card is active", example = "true")
     private Boolean isActive;

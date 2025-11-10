@@ -1,14 +1,23 @@
 package com.example.demo.entity;
 
-import com.example.demo.enums.CardStatus;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import com.example.demo.enums.CardStatus;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Entity representing a credit card in the system with associated account and status information.
@@ -44,11 +53,11 @@ public class CreditCard {
     @Column(name = "card_type", length = 20)
     private String cardType;
     
-    @Column(name = "credit_limit")
-    private Double creditLimit;
+    @Column(name = "credit_limit", precision = 15, scale = 2)
+    private BigDecimal creditLimit;
     
-    @Column(name = "available_credit")
-    private Double availableCredit;
+    @Column(name = "available_credit", precision = 15, scale = 2)
+    private BigDecimal availableCredit;
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
