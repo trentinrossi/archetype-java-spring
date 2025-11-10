@@ -9,10 +9,9 @@ CREATE TABLE users (
     first_name VARCHAR(100),
     last_name VARCHAR(100),
     active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_user_type CHECK (user_type IN ('ADMIN', 'REGULAR')),
-    CONSTRAINT chk_account_id_format CHECK (account_id IS NULL OR account_id ~ '^[0-9]{11}$'),
     CONSTRAINT fk_users_account FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE SET NULL
 );
 

@@ -2,8 +2,8 @@
 -- Account ID must be exactly 11 digits numeric
 CREATE TABLE accounts (
     account_id VARCHAR(11) PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_account_id_format CHECK (account_id ~ '^[0-9]{11}$')
 );
 
