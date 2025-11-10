@@ -7,8 +7,8 @@ CREATE TABLE credit_cards (
     card_number VARCHAR(16) NOT NULL UNIQUE,
     account_id VARCHAR(11) NOT NULL,
     card_status VARCHAR(1) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_credit_card_account FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE CASCADE,
     CONSTRAINT chk_card_number_format CHECK (card_number ~ '^\d{16}$'),
     CONSTRAINT chk_card_status CHECK (card_status IN ('A', 'B', 'E', 'S', 'C'))
@@ -16,7 +16,7 @@ CREATE TABLE credit_cards (
 
 -- Create indexes for performance and filtering
 CREATE INDEX idx_card_number ON credit_cards(card_number);
-CREATE INDEX idx_account_id ON credit_cards(account_id);
+CREATE INDEX idx_credit_card_account_id ON credit_cards(account_id);
 CREATE INDEX idx_card_status ON credit_cards(card_status);
 
 -- Add comments to table
