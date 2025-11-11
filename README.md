@@ -1,301 +1,438 @@
-# Spring Boot Application Archetype
+# Credit Card and Account Management System (COCRDLIC)
 
-A comprehensive Spring Boot 3.5.5 archetype with Java 21, PostgreSQL, JPA, Flyway migrations, and clean architecture patterns.
+## Overview
 
-## 📋 Table of Contents
+This is a production-ready Spring Boot application implementing the **COCRDLIC (Credit Card List)** program for managing credit cards and customer accounts. The system provides comprehensive REST APIs with full business rule enforcement, user permission-based access control, and robust data validation.
 
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Architecture Guide](#architecture-guide)
-- [Development Guidelines](#development-guidelines)
-- [API Examples](#api-examples)
-- [Database Migrations](#database-migrations)
-- [Configuration](#configuration)
-- [Best Practices](#best-practices)
-- [Contributing](#contributing)
+## Features
 
-## 🚀 Overview
+### Core Functionality
+- ✅ **Account Management**: Create, read, update, and delete customer accounts
+- ✅ **User Management**: Manage system users with role-based permissions (Admin/Regular)
+- ✅ **Credit Card Management**: Full CRUD operations for credit cards with status tracking
+- ✅ **Advanced Filtering**: Filter credit cards by card number, account ID, and status
+- ✅ **Pagination Support**: Efficient pagination for large datasets
+- ✅ **User Access Control**: Grant/revoke user access to specific accounts
 
-This archetype provides a ready-to-use Spring Boot application structure that follows industry best practices and clean architecture principles. It's designed to help developers quickly set up new projects with a solid foundation.
+### Business Rules Implemented
 
-## ✨ Features
+The system implements **17 comprehensive business rules**:
 
-- **Spring Boot 3.5.5** with Java 21
-- **PostgreSQL** database with JPA/Hibernate
-- **Flyway** database migrations
-- **Lombok** for reducing boilerplate code
-- **Spring Boot Actuator** for monitoring
-- **Layered Architecture** (Controller → Service → Repository → Entity)
-- **DTO Pattern** for API contracts
-- **Comprehensive Examples** for each layer
-- **Production-Ready Configuration**
+1. **BR001**: User Permission Based Card Access
+2. **BR002**: Card Number Filter Validation (16 digits)
+3. **BR003**: Single Selection Enforcement
+4. **BR004**: Account Filter Validation (11 digits)
+5. **BR005**: Card Status Filter Validation
+6. **BR006**: Filter Record Matching
+7. **BR008**: First Page Navigation Restriction
+8. **BR009**: Last Page Navigation Restriction
+9. **BR011**: Exit to Menu Navigation
+10. **BR012**: View Card Details Navigation
+11. **BR013**: Update Card Information Navigation
+12. **BR014**: Forward Pagination
+13. **BR015**: Backward Pagination
+14. **BR017**: Input Error Protection
 
-## 📁 Project Structure
+## Technology Stack
+
+- **Framework**: Spring Boot 3.5.5
+- **Language**: Java 21
+- **Database**: PostgreSQL
+- **Migration**: Flyway
+- **Build Tool**: Maven
+- **Documentation**: OpenAPI/Swagger
+- **Utilities**: Lombok
+
+## Project Structure
 
 ```
 src/
 ├── main/
 │   ├── java/com/example/demo/
-│   │   ├── DemoApplication.java          # Main application class
-│   │   ├── controller/                   # REST Controllers
-│   │   │   └── UserController.java       # Example controller
-│   │   ├── dto/                         # Data Transfer Objects
-│   │   │   ├── CreateUserRequest.java    # Request DTO
-│   │   │   ├── UpdateUserRequest.java    # Update DTO
-│   │   │   └── UserResponse.java         # Response DTO
-│   │   ├── entity/                      # JPA Entities
-│   │   │   ├── User.java                # Example entity
-│   │   │   └── Order.java               # Related entity example
-│   │   ├── enums/                       # Enum definitions
-│   │   │   ├── UserStatus.java          # User status enum
-│   │   │   └── OrderStatus.java         # Order status enum
-│   │   ├── repository/                  # Data Access Layer
-│   │   │   └── UserRepository.java      # Example repository
-│   │   └── service/                     # Business Logic Layer
-│   │       └── UserService.java        # Example service
+│   │   ├── controller/          # REST API Controllers
+│   │   │   ├── AccountController.java
+│   │   │   ├── UserController.java
+│   │   │   └── CreditCardController.java
+│   │   ├── dto/                 # Data Transfer Objects
+│   │   │   ├── CreateAccountRequestDto.java
+│   │   │   ├── AccountResponseDto.java
+│   │   │   ├── CreateUserRequestDto.java
+│   │   │   ├── UserResponseDto.java
+│   │   │   ├── CreateCreditCardRequestDto.java
+│   │   │   ├── CreditCardResponseDto.java
+│   │   │   └── CreditCardFilterRequestDto.java
+│   │   ├── entity/              # JPA Entities
+│   │   │   ├── Account.java
+│   │   │   ├── User.java
+│   │   │   └── CreditCard.java
+│   │   ├── enums/               # Enumerations
+│   │   │   ├── CardStatus.java
+│   │   │   └── UserType.java
+│   │   ├── repository/          # Data Access Layer
+│   │   │   ├── AccountRepository.java
+│   │   │   ├── UserRepository.java
+│   │   │   └── CreditCardRepository.java
+│   │   └── service/             # Business Logic Layer
+│   │       ├── AccountService.java
+│   │       ├── UserService.java
+│   │       └── CreditCardService.java
 │   └── resources/
-│       ├── application.properties       # Application configuration
-│       └── db/migration/               # Flyway migrations
-│           ├── V1__Create_users_table.sql
-│           ├── V2__Add_user_search_indexes.sql
-│           └── V3__Create_orders_table.sql
-└── test/                               # Test classes
+│       ├── application.properties
+│       └── db/migration/        # Flyway Migrations
+│           ├── V1__Create_accounts_table.sql
+│           ├── V2__Create_users_table.sql
+│           ├── V3__Create_credit_cards_table.sql
+│           ├── V4__Create_user_account_access_table.sql
+│           └── V5__Insert_sample_data.sql
+└── test/                        # Test Classes
 ```
 
-## 🏁 Getting Started
+## Getting Started
 
-### Quick Start
-1. **Clone or use this archetype**
-2. **Configure your database** in `application.properties`
-3. **Run the application**: `./mvnw spring-boot:run`
-4. **Test the API**: `curl http://localhost:8080/api/users`
+### Prerequisites
 
-For detailed setup instructions, see [QUICKSTART.md](QUICKSTART.md).
+- Java 21 or higher
+- Maven 3.6 or higher
+- PostgreSQL 12 or higher
 
-## 🏗️ Architecture Guide
+### Database Setup
 
-This application follows a **layered architecture** pattern:
-
-### 1. **Controller Layer** (`/controller`)
-- Handles HTTP requests and responses
-- Validates input data
-- Maps DTOs to/from service layer
-- Returns appropriate HTTP status codes
-
-### 2. **Service Layer** (`/service`)
-- Contains business logic
-- Orchestrates operations between repositories
-- Handles transactions
-- Performs data transformations
-
-### 3. **Repository Layer** (`/repository`)
-- Data access abstraction
-- Database operations through JPA
-- Custom queries when needed
-
-### 4. **Entity Layer** (`/entity`)
-- JPA entity definitions
-- Database table mappings
-- Relationships between entities
-
-### 5. **DTO Layer** (`/dto`)
-- API contracts (Request/Response objects)
-- Input validation
-- Data transfer between layers
-
-### 6. **Enums** (`/enums`)
-- Type-safe constants
-- Business domain values
-- Status definitions
-
-For detailed architecture information, see [ARCHETYPE.md](ARCHETYPE.md).
-
-## 🛠️ Development Guidelines
-
-### Creating a New Feature
-
-Follow this order when implementing new features:
-
-1. **Entity** → Define your data model
-2. **Migration** → Create database schema
-3. **Repository** → Data access interface
-4. **DTOs** → API contracts
-5. **Service** → Business logic
-6. **Controller** → REST endpoints
-7. **Tests** → Comprehensive testing
-
-### Example Implementation
-
-```java
-// 1. Entity
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String name;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
-}
-
-// 2. Repository
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
-}
-
-// 3. Service
-@Service
-@RequiredArgsConstructor
-public class ProductService {
-    private final ProductRepository productRepository;
-    
-    public ProductResponse createProduct(CreateProductRequest request) {
-        // Business logic here
-    }
-}
-
-// 4. Controller
-@RestController
-@RequestMapping("/api/products")
-public class ProductController {
-    private final ProductService productService;
-    
-    @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody CreateProductRequest request) {
-        // Controller logic here
-    }
-}
-```
-
-## 📝 API Examples
-
-### User Management APIs
-
-```bash
-# Create User
-POST /api/users
-{
-  "firstName": "John",
-  "lastName": "Doe", 
-  "email": "john.doe@example.com",
-  "phoneNumber": "555-1234"
-}
-
-# Get All Users (with pagination)
-GET /api/users?page=0&size=10&sort=createdAt,desc
-
-# Get User by ID
-GET /api/users/1
-
-# Update User
-PUT /api/users/1
-{
-  "firstName": "Jane",
-  "phoneNumber": "555-5678"
-}
-
-# Delete User
-DELETE /api/users/1
-
-# Search Users
-GET /api/users/search?q=john
-
-# Get Recent Users
-GET /api/users/recent
-```
-
-## 🗃️ Database Migrations
-
-Flyway migrations follow this naming convention:
-- `V{version}__{description}.sql`
-- Example: `V1__Create_users_table.sql`
-
-### Migration Examples
-
+1. Create a PostgreSQL database:
 ```sql
--- V1__Create_users_table.sql
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+CREATE DATABASE cocrdlic;
 ```
 
-## ⚙️ Configuration
-
-### Database Configuration
+2. Update `src/main/resources/application.properties` with your database credentials:
 ```properties
-# PostgreSQL Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_database
+spring.datasource.url=jdbc:postgresql://localhost:5432/cocrdlic
 spring.datasource.username=your_username
 spring.datasource.password=your_password
-
-# JPA Configuration
-spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.show-sql=false
-
-# Flyway Configuration
-spring.flyway.locations=classpath:db/migration
-spring.flyway.baseline-on-migrate=true
 ```
 
-### Development vs Production
-- **Development**: Use `spring.jpa.show-sql=true` for SQL logging
-- **Production**: Set `spring.jpa.show-sql=false` and configure proper logging levels
+### Build and Run
 
-## 📚 Best Practices
+1. Clone the repository
+2. Navigate to the project directory
+3. Build the project:
+```bash
+mvn clean install
+```
 
-### Code Organization
-- ✅ Follow package-by-layer structure
-- ✅ Use consistent naming conventions
-- ✅ Implement proper exception handling
-- ✅ Add comprehensive logging
-- ✅ Write meaningful tests
+4. Run the application:
+```bash
+mvn spring-boot:run
+```
 
-### Database
-- ✅ Always use migrations for schema changes
-- ✅ Add appropriate indexes for performance
-- ✅ Use proper constraints and validations
-- ✅ Document complex queries
+The application will start on `http://localhost:8080`
 
-### API Design
-- ✅ Use proper HTTP status codes
-- ✅ Implement pagination for collections
-- ✅ Validate input data
-- ✅ Return consistent response formats
-- ✅ Handle errors gracefully
+### Database Migrations
 
-### Security
-- ✅ Never expose entities directly in APIs
-- ✅ Use DTOs for data transfer
-- ✅ Validate all inputs
-- ✅ Implement proper authentication/authorization
-- ✅ Log security events
+Flyway migrations will run automatically on application startup, creating:
+- All required tables with proper constraints
+- Indexes for performance optimization
+- Sample data for testing
 
-## 🤝 Contributing
+## API Documentation
 
-1. Follow the established architecture patterns
-2. Add tests for new features
-3. Update documentation
-4. Follow the coding standards
-5. Create meaningful commit messages
+### Swagger UI
+
+Access the interactive API documentation at:
+```
+http://localhost:8080/swagger-ui.html
+```
+
+### OpenAPI Summary
+
+Comprehensive API documentation is available in `openapi-summary.md`, including:
+- All endpoint specifications
+- Request/response examples
+- Business rule mappings
+- Error codes and messages
+- Data models
+
+## Quick Start Examples
+
+### 1. Create an Account
+```bash
+curl -X POST http://localhost:8080/api/accounts \
+  -H "Content-Type: application/json" \
+  -d '{"accountId":"12345678901"}'
+```
+
+### 2. Create a User
+```bash
+curl -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"USER001","userType":"ADMIN"}'
+```
+
+### 3. Create a Credit Card
+```bash
+curl -X POST http://localhost:8080/api/credit-cards \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cardNumber":"1234567890123456",
+    "accountId":"12345678901",
+    "cardStatus":"A"
+  }'
+```
+
+### 4. Filter Credit Cards (with User Permission)
+```bash
+curl -X POST "http://localhost:8080/api/credit-cards/filter?userId=USER001" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "accountId":"12345678901",
+    "cardStatus":"A"
+  }'
+```
+
+### 5. Grant User Access to Account
+```bash
+curl -X POST http://localhost:8080/api/accounts/12345678901/grant-access/USER001
+```
+
+## Data Models
+
+### Account
+- **account_id**: 11-digit numeric identifier (required)
+- **created_at**: Timestamp
+- **updated_at**: Timestamp
+
+### User
+- **user_id**: Alphanumeric identifier (max 20 characters, required)
+- **user_type**: ADMIN or REGULAR (required)
+- **created_at**: Timestamp
+- **updated_at**: Timestamp
+
+### Credit Card
+- **card_number**: 16-digit numeric identifier (required)
+- **account_id**: 11-digit account reference (required)
+- **card_status**: Single character status code (required)
+- **created_at**: Timestamp
+- **updated_at**: Timestamp
+
+## Card Status Codes
+
+| Code | Status | Description |
+|------|--------|-------------|
+| A | Active | Card is active and can be used |
+| I | Inactive | Card is inactive |
+| B | Blocked | Card is blocked |
+| P | Pending | Card is pending activation |
+| C | Closed | Card is closed |
+| S | Suspended | Card is suspended |
+| E | Expired | Card has expired |
+| L | Lost | Card is reported as lost |
+| T | Stolen | Card is reported as stolen |
+| D | Damaged | Card is damaged |
+
+## User Types and Permissions
+
+### Admin User (ADMIN)
+- Can view **all credit cards** without account context
+- Has access to **all accounts**
+- Can grant/revoke user access to accounts
+- No restrictions on filtering or viewing
+
+### Regular User (REGULAR)
+- Can only view credit cards for **their accessible accounts**
+- **Requires account context** for filtering
+- Access must be explicitly granted by admin
+- Restricted to assigned accounts only
+
+## Business Rule Details
+
+### BR001: User Permission Based Card Access
+Admin users can view all credit cards without context, while regular users can only view cards associated with their specific account.
+
+**Implementation**:
+- Service layer checks user type before filtering
+- Admin users bypass account restrictions
+- Regular users filtered by accessible accounts
+
+### BR002: Card Number Filter Validation
+Card number must be numeric and exactly 16 digits if supplied, cannot be blank, spaces, or zeros.
+
+**Validation**:
+- Pattern: `^(?!0+$)[0-9]{16}$`
+- Error: "CARD ID FILTER,IF SUPPLIED MUST BE A 16 DIGIT NUMBER"
+
+### BR004: Account Filter Validation
+Account ID must be numeric and exactly 11 digits if supplied, cannot be blank, spaces, or zeros.
+
+**Validation**:
+- Pattern: `^(?!0+$)[0-9]{11}$`
+- Error: "ACCOUNT FILTER,IF SUPPLIED MUST BE A 11 DIGIT NUMBER"
+
+### BR006: Filter Record Matching
+Records must match **all supplied filter criteria** to be displayed.
+
+**Implementation**:
+- Multiple filters combined with AND logic
+- Empty/null filters are ignored
+- All non-empty filters must match
+
+## Error Handling
+
+The API returns appropriate HTTP status codes and error messages:
+
+- **200 OK**: Successful operation
+- **201 Created**: Resource created successfully
+- **204 No Content**: Successful deletion
+- **400 Bad Request**: Validation error or invalid input
+- **403 Forbidden**: Access denied
+- **404 Not Found**: Resource not found
+- **500 Internal Server Error**: Server error
+
+## Sample Data
+
+The application includes sample data for testing:
+
+### Accounts
+- 12345678901
+- 23456789012
+- 34567890123
+- 45678901234
+- 56789012345
+
+### Users
+- **ADMIN001** (Admin) - Full access
+- **USER001** (Regular) - Access to accounts 12345678901, 23456789012
+- **USER002** (Regular) - Access to account 34567890123
+- **USER003** (Regular) - Access to accounts 45678901234, 56789012345
+
+### Credit Cards
+- 10 sample cards distributed across all accounts
+- Various statuses (Active, Blocked, Inactive, Closed, Suspended)
+
+## Testing
+
+### Manual Testing
+Use the provided sample data to test:
+1. Admin user viewing all cards
+2. Regular user viewing only accessible cards
+3. Filtering by card number, account ID, and status
+4. Pagination navigation
+5. Access control (grant/revoke)
+
+### API Testing Tools
+- **Swagger UI**: Interactive testing at `/swagger-ui.html`
+- **Postman**: Import OpenAPI specification
+- **cURL**: Command-line testing (examples provided)
+
+## Performance Considerations
+
+### Database Indexes
+The system includes optimized indexes on:
+- Primary keys (account_id, user_id, card_number)
+- Foreign keys (account_id in credit_cards)
+- Frequently queried fields (card_status, user_type)
+- Timestamp fields for sorting
+
+### Pagination
+- Default page size: 20 items
+- Configurable page size via query parameters
+- Efficient database queries with LIMIT/OFFSET
+
+## Security Considerations
+
+**⚠️ Important**: This implementation focuses on business logic and does not include authentication/authorization middleware.
+
+For production deployment, you should add:
+1. **Spring Security** for authentication
+2. **JWT or OAuth2** for token-based auth
+3. **Role-Based Access Control (RBAC)**
+4. **HTTPS/TLS** encryption
+5. **Rate limiting** and throttling
+6. **Input sanitization** and SQL injection prevention
+7. **CORS configuration** for web clients
+
+## Monitoring and Logging
+
+The application uses SLF4J with Logback for logging:
+- **INFO**: Normal operations, API calls
+- **WARN**: Validation failures, navigation restrictions
+- **ERROR**: Exceptions, system errors
+
+Logs include:
+- Request/response details
+- Business rule validations
+- Database operations
+- Error stack traces
+
+## Deployment
+
+### Production Checklist
+- [ ] Configure production database credentials
+- [ ] Enable HTTPS/TLS
+- [ ] Add authentication/authorization
+- [ ] Configure logging levels
+- [ ] Set up monitoring and alerting
+- [ ] Configure backup strategy
+- [ ] Review and adjust connection pool settings
+- [ ] Enable production profiles
+- [ ] Configure CORS policies
+- [ ] Set up CI/CD pipeline
+
+### Docker Deployment (Optional)
+```dockerfile
+FROM openjdk:21-jdk-slim
+COPY target/*.jar app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Database Connection Failed**
+- Verify PostgreSQL is running
+- Check database credentials in application.properties
+- Ensure database exists
+
+**Flyway Migration Failed**
+- Check migration scripts for syntax errors
+- Verify database user has CREATE/ALTER permissions
+- Review Flyway logs for specific errors
+
+**Validation Errors**
+- Ensure card numbers are exactly 16 digits
+- Ensure account IDs are exactly 11 digits
+- Check that values are not all zeros
+
+## Contributing
+
+This is a generated codebase following the archetype patterns. When making changes:
+1. Follow the existing layered architecture
+2. Maintain business rule implementations
+3. Update tests for new features
+4. Document API changes in openapi-summary.md
+5. Follow naming conventions
+
+## License
+
+[Specify your license here]
+
+## Support
+
+For questions, issues, or feature requests:
+- Review the `openapi-summary.md` for API details
+- Check the business rules documentation
+- Consult the archetype guide
+
+## Version History
+
+- **1.0.0** (2024): Initial release
+  - Complete CRUD operations for accounts, users, and credit cards
+  - 17 business rules implemented
+  - User permission-based access control
+  - Comprehensive filtering and pagination
+  - Sample data for testing
 
 ---
 
-## 📄 Additional Documentation
-
-- [Detailed Architecture Guide](ARCHETYPE.md)
-- [Quick Start Guide](QUICKSTART.md)
-- [API Documentation](http://localhost:8080/actuator/mappings) (when running)
-
-This archetype provides everything you need to build robust, scalable Spring Boot applications. Happy coding! 🚀
+**Generated with**: Spring Boot Archetype Generator  
+**Framework**: Spring Boot 3.5.5  
+**Java Version**: 21  
+**Database**: PostgreSQL
