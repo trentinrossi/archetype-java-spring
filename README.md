@@ -1,301 +1,344 @@
-# Spring Boot Application Archetype
+# Bill Payment System
 
-A comprehensive Spring Boot 3.5.5 archetype with Java 21, PostgreSQL, JPA, Flyway migrations, and clean architecture patterns.
+A production-ready Spring Boot application for processing bill payments with complete account validation, balance checking, and transaction recording.
 
-## 📋 Table of Contents
+## Overview
 
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Architecture Guide](#architecture-guide)
-- [Development Guidelines](#development-guidelines)
-- [API Examples](#api-examples)
-- [Database Migrations](#database-migrations)
-- [Configuration](#configuration)
-- [Best Practices](#best-practices)
-- [Contributing](#contributing)
+This system implements a comprehensive bill payment workflow that processes full account balance payments. It includes robust validation, transaction management, and complete audit trails.
 
-## 🚀 Overview
+## Features
 
-This archetype provides a ready-to-use Spring Boot application structure that follows industry best practices and clean architecture principles. It's designed to help developers quickly set up new projects with a solid foundation.
+### Core Functionality
+- ✅ **Account Management** - Create, read, update, and delete customer accounts
+- ✅ **Card Cross Reference** - Link multiple cards to accounts
+- ✅ **Transaction Recording** - Complete transaction history with timestamps
+- ✅ **Bill Payment Workflow** - End-to-end payment processing with validation
 
-## ✨ Features
+### Business Rules Implementation
+- **BR001**: Account Validation - Validates account existence
+- **BR002**: Balance Check - Verifies positive balance
+- **BR003**: Payment Confirmation - Requires user confirmation
+- **BR004**: Full Balance Payment - Processes entire balance
+- **BR005**: Transaction ID Generation - Sequential unique IDs
+- **BR006**: Bill Payment Recording - Detailed transaction attributes
+- **BR007**: Account Balance Update - Automatic balance updates
 
-- **Spring Boot 3.5.5** with Java 21
-- **PostgreSQL** database with JPA/Hibernate
-- **Flyway** database migrations
-- **Lombok** for reducing boilerplate code
-- **Spring Boot Actuator** for monitoring
-- **Layered Architecture** (Controller → Service → Repository → Entity)
-- **DTO Pattern** for API contracts
-- **Comprehensive Examples** for each layer
-- **Production-Ready Configuration**
+## Technology Stack
 
-## 📁 Project Structure
+- **Java 21** - Latest LTS version
+- **Spring Boot 3.5.5** - Application framework
+- **PostgreSQL** - Database
+- **JPA/Hibernate** - ORM
+- **Flyway** - Database migrations
+- **Lombok** - Reduce boilerplate code
+- **OpenAPI/Swagger** - API documentation
+
+## Project Structure
 
 ```
 src/
 ├── main/
 │   ├── java/com/example/demo/
-│   │   ├── DemoApplication.java          # Main application class
-│   │   ├── controller/                   # REST Controllers
-│   │   │   └── UserController.java       # Example controller
-│   │   ├── dto/                         # Data Transfer Objects
-│   │   │   ├── CreateUserRequest.java    # Request DTO
-│   │   │   ├── UpdateUserRequest.java    # Update DTO
-│   │   │   └── UserResponse.java         # Response DTO
-│   │   ├── entity/                      # JPA Entities
-│   │   │   ├── User.java                # Example entity
-│   │   │   └── Order.java               # Related entity example
-│   │   ├── enums/                       # Enum definitions
-│   │   │   ├── UserStatus.java          # User status enum
-│   │   │   └── OrderStatus.java         # Order status enum
-│   │   ├── repository/                  # Data Access Layer
-│   │   │   └── UserRepository.java      # Example repository
-│   │   └── service/                     # Business Logic Layer
-│   │       └── UserService.java        # Example service
+│   │   ├── controller/          # REST API endpoints
+│   │   │   ├── AccountController.java
+│   │   │   ├── CardCrossReferenceController.java
+│   │   │   ├── TransactionController.java
+│   │   │   └── BillPaymentController.java
+│   │   ├── dto/                 # Data Transfer Objects
+│   │   │   ├── CreateAccountRequestDto.java
+│   │   │   ├── UpdateAccountRequestDto.java
+│   │   │   ├── AccountResponseDto.java
+│   │   │   ├── CreateCardCrossReferenceRequestDto.java
+│   │   │   ├── UpdateCardCrossReferenceRequestDto.java
+│   │   │   ├── CardCrossReferenceResponseDto.java
+│   │   │   ├── CreateTransactionRequestDto.java
+│   │   │   ├── UpdateTransactionRequestDto.java
+│   │   │   ├── TransactionResponseDto.java
+│   │   │   ├── ProcessBillPaymentRequestDto.java
+│   │   │   └── BillPaymentResponseDto.java
+│   │   ├── entity/              # JPA Entities
+│   │   │   ├── Account.java
+│   │   │   ├── CardCrossReference.java
+│   │   │   └── Transaction.java
+│   │   ├── repository/          # Data Access Layer
+│   │   │   ├── AccountRepository.java
+│   │   │   ├── CardCrossReferenceRepository.java
+│   │   │   └── TransactionRepository.java
+│   │   └── service/             # Business Logic Layer
+│   │       ├── AccountService.java
+│   │       ├── CardCrossReferenceService.java
+│   │       ├── TransactionService.java
+│   │       └── BillPaymentService.java
 │   └── resources/
-│       ├── application.properties       # Application configuration
-│       └── db/migration/               # Flyway migrations
-│           ├── V1__Create_users_table.sql
-│           ├── V2__Add_user_search_indexes.sql
-│           └── V3__Create_orders_table.sql
-└── test/                               # Test classes
+│       ├── application.properties
+│       └── db/migration/        # Flyway migrations
+│           ├── V1__Create_accounts_table.sql
+│           ├── V2__Create_card_cross_reference_table.sql
+│           ├── V3__Create_transactions_table.sql
+│           └── V4__Insert_sample_data.sql
+└── test/                        # Test classes
 ```
 
-## 🏁 Getting Started
+## Getting Started
 
-### Quick Start
-1. **Clone or use this archetype**
-2. **Configure your database** in `application.properties`
-3. **Run the application**: `./mvnw spring-boot:run`
-4. **Test the API**: `curl http://localhost:8080/api/users`
+### Prerequisites
 
-For detailed setup instructions, see [QUICKSTART.md](QUICKSTART.md).
+- Java 21 or higher
+- Maven 3.6 or higher
+- PostgreSQL 12 or higher
 
-## 🏗️ Architecture Guide
+### Database Setup
 
-This application follows a **layered architecture** pattern:
-
-### 1. **Controller Layer** (`/controller`)
-- Handles HTTP requests and responses
-- Validates input data
-- Maps DTOs to/from service layer
-- Returns appropriate HTTP status codes
-
-### 2. **Service Layer** (`/service`)
-- Contains business logic
-- Orchestrates operations between repositories
-- Handles transactions
-- Performs data transformations
-
-### 3. **Repository Layer** (`/repository`)
-- Data access abstraction
-- Database operations through JPA
-- Custom queries when needed
-
-### 4. **Entity Layer** (`/entity`)
-- JPA entity definitions
-- Database table mappings
-- Relationships between entities
-
-### 5. **DTO Layer** (`/dto`)
-- API contracts (Request/Response objects)
-- Input validation
-- Data transfer between layers
-
-### 6. **Enums** (`/enums`)
-- Type-safe constants
-- Business domain values
-- Status definitions
-
-For detailed architecture information, see [ARCHETYPE.md](ARCHETYPE.md).
-
-## 🛠️ Development Guidelines
-
-### Creating a New Feature
-
-Follow this order when implementing new features:
-
-1. **Entity** → Define your data model
-2. **Migration** → Create database schema
-3. **Repository** → Data access interface
-4. **DTOs** → API contracts
-5. **Service** → Business logic
-6. **Controller** → REST endpoints
-7. **Tests** → Comprehensive testing
-
-### Example Implementation
-
-```java
-// 1. Entity
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String name;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
-}
-
-// 2. Repository
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
-}
-
-// 3. Service
-@Service
-@RequiredArgsConstructor
-public class ProductService {
-    private final ProductRepository productRepository;
-    
-    public ProductResponse createProduct(CreateProductRequest request) {
-        // Business logic here
-    }
-}
-
-// 4. Controller
-@RestController
-@RequestMapping("/api/products")
-public class ProductController {
-    private final ProductService productService;
-    
-    @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody CreateProductRequest request) {
-        // Controller logic here
-    }
-}
-```
-
-## 📝 API Examples
-
-### User Management APIs
-
-```bash
-# Create User
-POST /api/users
-{
-  "firstName": "John",
-  "lastName": "Doe", 
-  "email": "john.doe@example.com",
-  "phoneNumber": "555-1234"
-}
-
-# Get All Users (with pagination)
-GET /api/users?page=0&size=10&sort=createdAt,desc
-
-# Get User by ID
-GET /api/users/1
-
-# Update User
-PUT /api/users/1
-{
-  "firstName": "Jane",
-  "phoneNumber": "555-5678"
-}
-
-# Delete User
-DELETE /api/users/1
-
-# Search Users
-GET /api/users/search?q=john
-
-# Get Recent Users
-GET /api/users/recent
-```
-
-## 🗃️ Database Migrations
-
-Flyway migrations follow this naming convention:
-- `V{version}__{description}.sql`
-- Example: `V1__Create_users_table.sql`
-
-### Migration Examples
-
+1. Create a PostgreSQL database:
 ```sql
--- V1__Create_users_table.sql
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+CREATE DATABASE billpayment;
+```
+
+2. Update `src/main/resources/application.properties`:
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/billpayment
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+```
+
+### Build and Run
+
+1. Clone the repository
+2. Build the project:
+```bash
+mvn clean install
+```
+
+3. Run the application:
+```bash
+mvn spring-boot:run
+```
+
+The application will start on `http://localhost:8080`
+
+### Database Migrations
+
+Flyway will automatically run migrations on startup:
+- V1: Creates accounts table
+- V2: Creates card_cross_reference table
+- V3: Creates transactions table
+- V4: Inserts sample data for testing
+
+## API Documentation
+
+Complete API documentation is available in [openapi-summary.md](openapi-summary.md)
+
+### Quick Start Examples
+
+#### 1. Preview Bill Payment
+```bash
+curl -X GET "http://localhost:8080/api/bill-payment/preview?acctId=ACC00001234&cardNum=4111111111111111"
+```
+
+#### 2. Process Bill Payment
+```bash
+curl -X POST "http://localhost:8080/api/bill-payment/process" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "acctId": "ACC00001234",
+    "cardNum": "4111111111111111",
+    "confirmed": true
+  }'
+```
+
+#### 3. Get Account Details
+```bash
+curl -X GET "http://localhost:8080/api/accounts/ACC00001234"
+```
+
+#### 4. Get Transaction History
+```bash
+curl -X GET "http://localhost:8080/api/transactions/by-account/ACC00001234"
+```
+
+## Sample Data
+
+The system includes sample data for testing:
+
+### Accounts
+| Account ID   | Balance    | Card Number      |
+|--------------|------------|------------------|
+| ACC00001234  | $1,500.00  | 4111111111111111 |
+| ACC00005678  | $2,750.50  | 4222222222222222 |
+| ACC00009012  | $500.25    | 4333333333333333 |
+| ACC00003456  | $0.00      | 4444444444444444 |
+| ACC00007890  | $10,000.00 | 4555555555555555 |
+
+## Bill Payment Workflow
+
+### Complete Process Flow
+
+1. **Account Validation (BR001)**
+   - System validates account ID exists
+   - Error: "Acct ID can NOT be empty..." or "Account ID NOT found..."
+
+2. **Balance Check (BR002)**
+   - System verifies account has positive balance
+   - Error: "You have nothing to pay..."
+
+3. **Card Validation**
+   - System validates card is associated with account
+   - Error: "Card number not associated with this account"
+
+4. **Payment Confirmation (BR003)**
+   - User must confirm payment with `confirmed: true`
+   - Without confirmation, returns preview information
+
+5. **Full Balance Payment (BR004)**
+   - System processes payment for entire account balance
+   - Balance is set to zero after payment
+
+6. **Transaction ID Generation (BR005)**
+   - System generates unique sequential transaction ID
+   - ID is incremented from last transaction
+
+7. **Transaction Recording (BR006)**
+   - System creates transaction record with:
+     - Type Code: "02" (Bill Payment)
+     - Category Code: 2 (Bill Payment)
+     - Source: "POS TERM"
+     - Merchant ID: 999999999
+     - Merchant Name: "BILL PAYMENT"
+     - Timestamps: Original and Processing
+
+8. **Balance Update (BR007)**
+   - System updates account balance to zero
+   - Transaction is committed atomically
+
+## Error Handling
+
+### Validation Errors
+- Account ID must be exactly 11 characters
+- Card number must be exactly 16 characters
+- Transaction amount must be greater than zero
+- All required fields must be provided
+
+### Business Rule Errors
+- **BR001**: "Acct ID can NOT be empty...", "Account ID NOT found..."
+- **BR002**: "You have nothing to pay..."
+- **BR003**: Payment requires confirmation
+
+### HTTP Status Codes
+- `200 OK` - Successful operation
+- `201 Created` - Resource created successfully
+- `204 No Content` - Resource deleted successfully
+- `400 Bad Request` - Validation or business rule error
+- `404 Not Found` - Resource not found
+- `500 Internal Server Error` - Server error
+
+## Database Schema
+
+### accounts
+```sql
+CREATE TABLE accounts (
+    acct_id VARCHAR(11) PRIMARY KEY,
+    acct_curr_bal DECIMAL(13, 2) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
-## ⚙️ Configuration
-
-### Database Configuration
-```properties
-# PostgreSQL Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_database
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-
-# JPA Configuration
-spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.show-sql=false
-
-# Flyway Configuration
-spring.flyway.locations=classpath:db/migration
-spring.flyway.baseline-on-migrate=true
+### card_cross_reference
+```sql
+CREATE TABLE card_cross_reference (
+    id BIGSERIAL PRIMARY KEY,
+    xref_acct_id VARCHAR(11) NOT NULL,
+    xref_card_num VARCHAR(16) NOT NULL,
+    acct_id VARCHAR(11) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (acct_id) REFERENCES accounts(acct_id)
+);
 ```
 
-### Development vs Production
-- **Development**: Use `spring.jpa.show-sql=true` for SQL logging
-- **Production**: Set `spring.jpa.show-sql=false` and configure proper logging levels
+### transactions
+```sql
+CREATE TABLE transactions (
+    tran_id BIGINT PRIMARY KEY,
+    tran_type_cd VARCHAR(2) NOT NULL DEFAULT '02',
+    tran_cat_cd INTEGER NOT NULL DEFAULT 2,
+    tran_source VARCHAR(10) NOT NULL DEFAULT 'POS TERM',
+    tran_desc VARCHAR(50) NOT NULL,
+    tran_amt DECIMAL(11, 2) NOT NULL,
+    tran_card_num VARCHAR(16) NOT NULL,
+    tran_merchant_id INTEGER NOT NULL,
+    tran_merchant_name VARCHAR(50) NOT NULL,
+    tran_merchant_city VARCHAR(50) NOT NULL,
+    tran_merchant_zip VARCHAR(10) NOT NULL,
+    tran_orig_ts TIMESTAMP NOT NULL,
+    tran_proc_ts TIMESTAMP NOT NULL,
+    acct_id VARCHAR(11) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (acct_id) REFERENCES accounts(acct_id)
+);
+```
 
-## 📚 Best Practices
+## Development
 
-### Code Organization
-- ✅ Follow package-by-layer structure
-- ✅ Use consistent naming conventions
-- ✅ Implement proper exception handling
-- ✅ Add comprehensive logging
-- ✅ Write meaningful tests
+### Code Generation
+This project was generated using production-grade code generation following the Spring Boot archetype patterns.
 
-### Database
-- ✅ Always use migrations for schema changes
-- ✅ Add appropriate indexes for performance
-- ✅ Use proper constraints and validations
-- ✅ Document complex queries
+### Architecture
+- **Controller Layer**: REST API endpoints with validation
+- **Service Layer**: Business logic and transaction management
+- **Repository Layer**: Data access with JPA
+- **Entity Layer**: Database models with relationships
+- **DTO Layer**: Request/Response objects with validation
 
-### API Design
-- ✅ Use proper HTTP status codes
-- ✅ Implement pagination for collections
-- ✅ Validate input data
-- ✅ Return consistent response formats
-- ✅ Handle errors gracefully
+### Best Practices
+- ✅ Separation of concerns across layers
+- ✅ DTO pattern for API communication
+- ✅ Bean validation annotations
+- ✅ Transaction management
+- ✅ Proper error handling
+- ✅ Comprehensive logging
+- ✅ Database migrations with Flyway
+- ✅ OpenAPI documentation
 
-### Security
-- ✅ Never expose entities directly in APIs
-- ✅ Use DTOs for data transfer
-- ✅ Validate all inputs
-- ✅ Implement proper authentication/authorization
-- ✅ Log security events
+## Testing
 
-## 🤝 Contributing
+### Manual Testing
+Use the provided sample data to test the bill payment workflow:
 
-1. Follow the established architecture patterns
-2. Add tests for new features
-3. Update documentation
-4. Follow the coding standards
-5. Create meaningful commit messages
+1. Preview payment for account ACC00001234
+2. Process payment with confirmation
+3. Verify account balance is now zero
+4. Check transaction was recorded
+
+### Integration Testing
+The system includes sample data that can be used for integration testing.
+
+## Monitoring
+
+The application includes Spring Boot Actuator for monitoring:
+- Health checks
+- Metrics
+- Application info
+
+## Contributing
+
+1. Follow the existing code structure
+2. Maintain separation of concerns
+3. Add proper validation and error handling
+4. Update documentation for new features
+5. Write tests for new functionality
+
+## License
+
+This project is part of the CardDemo Bill Payment Processing system.
+
+## Support
+
+For issues or questions, please refer to the [API Documentation](openapi-summary.md) or contact the development team.
 
 ---
 
-## 📄 Additional Documentation
-
-- [Detailed Architecture Guide](ARCHETYPE.md)
-- [Quick Start Guide](QUICKSTART.md)
-- [API Documentation](http://localhost:8080/actuator/mappings) (when running)
-
-This archetype provides everything you need to build robust, scalable Spring Boot applications. Happy coding! 🚀
+**Generated**: Production-ready code following Spring Boot archetype patterns
+**Version**: 1.0.0
+**Last Updated**: 2024
