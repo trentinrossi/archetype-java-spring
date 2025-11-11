@@ -1,38 +1,49 @@
-# Spring Boot Application Archetype
+# Card Demo Application - Account Management Module
 
-A comprehensive Spring Boot 3.5.5 archetype with Java 21, PostgreSQL, JPA, Flyway migrations, and clean architecture patterns.
+## Overview
 
-## 📋 Table of Contents
+This is a production-ready Spring Boot application implementing the Account Management module for the Card Demo system. The application provides comprehensive REST APIs for managing customer accounts with financial and status information, implementing the CBACT01C - Account Data File Reader and Printer functionality.
 
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Architecture Guide](#architecture-guide)
-- [Development Guidelines](#development-guidelines)
-- [API Examples](#api-examples)
-- [Database Migrations](#database-migrations)
-- [Configuration](#configuration)
-- [Best Practices](#best-practices)
-- [Contributing](#contributing)
+## Features
 
-## 🚀 Overview
+### Core Functionality
+- ✅ Complete CRUD operations for account management
+- ✅ Sequential account processing (batch-style file processing)
+- ✅ Credit and debit transaction processing
+- ✅ Account validation and business rule enforcement
+- ✅ Comprehensive query capabilities (by status, group, expiration, etc.)
+- ✅ Real-time credit availability calculations
+- ✅ Transaction eligibility verification
 
-This archetype provides a ready-to-use Spring Boot application structure that follows industry best practices and clean architecture principles. It's designed to help developers quickly set up new projects with a solid foundation.
+### Business Rules Implemented
+- **BR-001:** Sequential Account Record Processing
+- **BR-002:** Account Data Display Requirements
+- **BR-003:** Account File Access Control
+- **BR-004:** End of File Detection
 
-## ✨ Features
+### Technical Features
+- 🔒 Input validation with Jakarta Bean Validation
+- 📊 Pagination support for all list endpoints
+- 🗄️ Database migrations with Flyway
+- 📝 Comprehensive logging with SLF4J
+- 🔄 Transaction management with Spring @Transactional
+- 📖 OpenAPI/Swagger documentation
+- 🎯 Clean architecture with layered design
 
-- **Spring Boot 3.5.5** with Java 21
-- **PostgreSQL** database with JPA/Hibernate
-- **Flyway** database migrations
-- **Lombok** for reducing boilerplate code
-- **Spring Boot Actuator** for monitoring
-- **Layered Architecture** (Controller → Service → Repository → Entity)
-- **DTO Pattern** for API contracts
-- **Comprehensive Examples** for each layer
-- **Production-Ready Configuration**
+## Technology Stack
 
-## 📁 Project Structure
+- **Java:** 21
+- **Framework:** Spring Boot 3.5.5
+- **Database:** PostgreSQL (H2 for development/testing)
+- **ORM:** Spring Data JPA
+- **Migration:** Flyway
+- **Build Tool:** Maven
+- **Validation:** Jakarta Bean Validation
+- **Logging:** SLF4J with Logback
+- **Documentation:** OpenAPI 3.0 (Swagger)
+- **Code Generation:** Lombok
+
+## Project Structure
 
 ```
 src/
@@ -40,262 +51,407 @@ src/
 │   ├── java/com/example/demo/
 │   │   ├── DemoApplication.java          # Main application class
 │   │   ├── controller/                   # REST Controllers
-│   │   │   └── UserController.java       # Example controller
-│   │   ├── dto/                         # Data Transfer Objects
-│   │   │   ├── CreateUserRequest.java    # Request DTO
-│   │   │   ├── UpdateUserRequest.java    # Update DTO
-│   │   │   └── UserResponse.java         # Response DTO
-│   │   ├── entity/                      # JPA Entities
-│   │   │   ├── User.java                # Example entity
-│   │   │   └── Order.java               # Related entity example
-│   │   ├── enums/                       # Enum definitions
-│   │   │   ├── UserStatus.java          # User status enum
-│   │   │   └── OrderStatus.java         # Order status enum
-│   │   ├── repository/                  # Data Access Layer
-│   │   │   └── UserRepository.java      # Example repository
-│   │   └── service/                     # Business Logic Layer
-│   │       └── UserService.java        # Example service
+│   │   │   └── AccountController.java    # Account API endpoints
+│   │   ├── dto/                          # Data Transfer Objects
+│   │   │   ├── CreateAccountRequestDto.java
+│   │   │   ├── UpdateAccountRequestDto.java
+│   │   │   └── AccountResponseDto.java
+│   │   ├── entity/                       # JPA Entities
+│   │   │   └── Account.java              # Account entity
+│   │   ├── repository/                   # Data Access Layer
+│   │   │   └── AccountRepository.java    # Account repository
+│   │   └── service/                      # Business Logic Layer
+│   │       └── AccountService.java       # Account service
 │   └── resources/
-│       ├── application.properties       # Application configuration
-│       └── db/migration/               # Flyway migrations
-│           ├── V1__Create_users_table.sql
-│           ├── V2__Add_user_search_indexes.sql
-│           └── V3__Create_orders_table.sql
-└── test/                               # Test classes
+│       ├── application.properties        # Application configuration
+│       └── db/migration/                 # Flyway migrations
+│           └── V1__Create_accounts_table.sql
+└── test/                                 # Test classes
 ```
 
-## 🏁 Getting Started
+## Getting Started
 
-### Quick Start
-1. **Clone or use this archetype**
-2. **Configure your database** in `application.properties`
-3. **Run the application**: `./mvnw spring-boot:run`
-4. **Test the API**: `curl http://localhost:8080/api/users`
+### Prerequisites
 
-For detailed setup instructions, see [QUICKSTART.md](QUICKSTART.md).
+- Java 21 or higher
+- Maven 3.6 or higher
+- PostgreSQL 12 or higher (or use H2 for development)
 
-## 🏗️ Architecture Guide
+### Installation
 
-This application follows a **layered architecture** pattern:
-
-### 1. **Controller Layer** (`/controller`)
-- Handles HTTP requests and responses
-- Validates input data
-- Maps DTOs to/from service layer
-- Returns appropriate HTTP status codes
-
-### 2. **Service Layer** (`/service`)
-- Contains business logic
-- Orchestrates operations between repositories
-- Handles transactions
-- Performs data transformations
-
-### 3. **Repository Layer** (`/repository`)
-- Data access abstraction
-- Database operations through JPA
-- Custom queries when needed
-
-### 4. **Entity Layer** (`/entity`)
-- JPA entity definitions
-- Database table mappings
-- Relationships between entities
-
-### 5. **DTO Layer** (`/dto`)
-- API contracts (Request/Response objects)
-- Input validation
-- Data transfer between layers
-
-### 6. **Enums** (`/enums`)
-- Type-safe constants
-- Business domain values
-- Status definitions
-
-For detailed architecture information, see [ARCHETYPE.md](ARCHETYPE.md).
-
-## 🛠️ Development Guidelines
-
-### Creating a New Feature
-
-Follow this order when implementing new features:
-
-1. **Entity** → Define your data model
-2. **Migration** → Create database schema
-3. **Repository** → Data access interface
-4. **DTOs** → API contracts
-5. **Service** → Business logic
-6. **Controller** → REST endpoints
-7. **Tests** → Comprehensive testing
-
-### Example Implementation
-
-```java
-// 1. Entity
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String name;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
-}
-
-// 2. Repository
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
-}
-
-// 3. Service
-@Service
-@RequiredArgsConstructor
-public class ProductService {
-    private final ProductRepository productRepository;
-    
-    public ProductResponse createProduct(CreateProductRequest request) {
-        // Business logic here
-    }
-}
-
-// 4. Controller
-@RestController
-@RequestMapping("/api/products")
-public class ProductController {
-    private final ProductService productService;
-    
-    @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody CreateProductRequest request) {
-        // Controller logic here
-    }
-}
-```
-
-## 📝 API Examples
-
-### User Management APIs
-
+1. **Clone the repository:**
 ```bash
-# Create User
-POST /api/users
-{
-  "firstName": "John",
-  "lastName": "Doe", 
-  "email": "john.doe@example.com",
-  "phoneNumber": "555-1234"
-}
-
-# Get All Users (with pagination)
-GET /api/users?page=0&size=10&sort=createdAt,desc
-
-# Get User by ID
-GET /api/users/1
-
-# Update User
-PUT /api/users/1
-{
-  "firstName": "Jane",
-  "phoneNumber": "555-5678"
-}
-
-# Delete User
-DELETE /api/users/1
-
-# Search Users
-GET /api/users/search?q=john
-
-# Get Recent Users
-GET /api/users/recent
+git clone <repository-url>
+cd card-demo-app
 ```
 
-## 🗃️ Database Migrations
+2. **Configure the database:**
 
-Flyway migrations follow this naming convention:
-- `V{version}__{description}.sql`
-- Example: `V1__Create_users_table.sql`
+Edit `src/main/resources/application.properties`:
 
-### Migration Examples
-
-```sql
--- V1__Create_users_table.sql
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-## ⚙️ Configuration
-
-### Database Configuration
+For PostgreSQL:
 ```properties
-# PostgreSQL Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_database
+spring.datasource.url=jdbc:postgresql://localhost:5432/carddemo
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+```
+
+For H2 (development):
+```properties
+spring.datasource.url=jdbc:h2:mem:carddemo
+spring.datasource.driverClassName=org.h2.Driver
+spring.h2.console.enabled=true
+```
+
+3. **Build the application:**
+```bash
+mvn clean install
+```
+
+4. **Run the application:**
+```bash
+mvn spring-boot:run
+```
+
+The application will start on `http://localhost:8080`
+
+### Database Migration
+
+Flyway migrations run automatically on application startup. The initial migration creates the `accounts` table with all necessary indexes.
+
+To manually run migrations:
+```bash
+mvn flyway:migrate
+```
+
+## API Documentation
+
+### Swagger UI
+Access the interactive API documentation at:
+```
+http://localhost:8080/swagger-ui.html
+```
+
+### OpenAPI Specification
+Access the OpenAPI JSON specification at:
+```
+http://localhost:8080/v3/api-docs
+```
+
+### Complete API Summary
+See [openapi-summary.md](openapi-summary.md) for detailed documentation of all endpoints, including:
+- Request/response formats
+- Validation rules
+- Error codes
+- Testing examples
+
+## Quick Start Examples
+
+### Create an Account
+```bash
+curl -X POST http://localhost:8080/api/accounts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "acctId": "12345678901",
+    "acctActiveStatus": "A",
+    "acctCurrBal": 1500.50,
+    "acctCreditLimit": 5000.00,
+    "acctCashCreditLimit": 1000.00,
+    "acctOpenDate": "2023-01-15",
+    "acctExpirationDate": "2026-01-15",
+    "acctCurrCycCredit": 250.00,
+    "acctCurrCycDebit": 150.00,
+    "acctGroupId": "GRP001"
+  }'
+```
+
+### Get All Accounts
+```bash
+curl -X GET "http://localhost:8080/api/accounts?page=0&size=20"
+```
+
+### Apply a Debit Transaction
+```bash
+curl -X POST "http://localhost:8080/api/accounts/12345678901/debit?amount=100.00"
+```
+
+### Check Transaction Eligibility
+```bash
+curl -X GET "http://localhost:8080/api/accounts/12345678901/can-process-transaction?amount=500.00"
+```
+
+### Process Accounts Sequentially
+```bash
+curl -X GET "http://localhost:8080/api/accounts/process-sequential"
+```
+
+## Data Model
+
+### Account Entity
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| acctId | Long | Yes | Unique 11-digit account identifier |
+| acctActiveStatus | String(1) | Yes | 'A' (active) or 'I' (inactive) |
+| acctCurrBal | BigDecimal | Yes | Current balance |
+| acctCreditLimit | BigDecimal | Yes | Maximum credit limit |
+| acctCashCreditLimit | BigDecimal | Yes | Maximum cash credit limit |
+| acctOpenDate | LocalDate | Yes | Account opening date |
+| acctExpirationDate | LocalDate | Yes | Account expiration date |
+| acctReissueDate | LocalDate | No | Account reissue date |
+| acctCurrCycCredit | BigDecimal | Yes | Current cycle credit amount |
+| acctCurrCycDebit | BigDecimal | Yes | Current cycle debit amount |
+| acctGroupId | String | No | Account group identifier |
+| createdAt | LocalDateTime | Auto | Record creation timestamp |
+| updatedAt | LocalDateTime | Auto | Record update timestamp |
+
+### Computed Fields
+
+- **availableCredit:** Credit limit - current balance
+- **availableCashCredit:** Cash credit limit - current balance
+- **isActive:** Whether account status is 'A'
+- **isExpired:** Whether expiration date has passed
+- **currentCycleNetAmount:** Current cycle credit - current cycle debit
+
+## Validation Rules
+
+### Account ID
+- Must be exactly 11 digits
+- Must be numeric
+- Must be unique
+
+### Active Status
+- Must be 'A' (active) or 'I' (inactive)
+- Required field
+
+### Monetary Fields
+- Must be >= 0
+- Precision: 15 digits, scale: 2 decimal places
+- Use BigDecimal for accuracy
+
+### Dates
+- acctOpenDate: Must be in the past or present
+- acctExpirationDate: Must be in the future
+- Format: ISO-8601 (YYYY-MM-DD)
+
+## Business Logic
+
+### Credit Application
+When applying a credit:
+1. Validates credit amount > 0
+2. Reduces current balance by credit amount
+3. Increases current cycle credit by credit amount
+4. Updates timestamp
+
+### Debit Application
+When applying a debit:
+1. Validates debit amount > 0
+2. Checks account is active
+3. Checks account is not expired
+4. Verifies available credit is sufficient
+5. Increases current balance by debit amount
+6. Increases current cycle debit by debit amount
+7. Updates timestamp
+
+### Transaction Eligibility
+A transaction can be processed if:
+- Account status is 'A' (active)
+- Account expiration date is in the future
+- Available credit >= transaction amount
+
+### Sequential Processing
+Implements legacy batch file processing:
+1. Opens account file for input (validates database access)
+2. Retrieves all accounts ordered by ACCT-ID ascending
+3. Displays all fields for each account
+4. Detects end-of-file condition
+5. Returns appropriate result code
+
+## Error Handling
+
+### HTTP Status Codes
+- `200 OK` - Successful operation
+- `201 Created` - Resource created successfully
+- `204 No Content` - Successful deletion
+- `400 Bad Request` - Invalid input or business rule violation
+- `404 Not Found` - Resource not found
+- `500 Internal Server Error` - Server error
+
+### Common Error Messages
+- "Account ID must be an 11-digit numeric value"
+- "Active status must be 'A' or 'I'"
+- "Account with ID already exists"
+- "Account not found"
+- "Credit amount must be greater than zero"
+- "Transaction exceeds available credit limit or account is not active"
+
+## Logging
+
+The application uses SLF4J with Logback for comprehensive logging:
+
+- **INFO:** Normal operations, method entry/exit
+- **WARN:** Business rule violations, validation failures
+- **ERROR:** System errors, exceptions
+
+Log format includes:
+- Timestamp
+- Log level
+- Thread name
+- Logger name
+- Message
+- Exception stack trace (if applicable)
+
+## Testing
+
+### Unit Tests
+Run unit tests:
+```bash
+mvn test
+```
+
+### Integration Tests
+Run integration tests:
+```bash
+mvn verify
+```
+
+### Manual Testing
+Use the provided Swagger UI or curl commands from the examples above.
+
+## Configuration
+
+### Application Properties
+
+Key configuration options in `application.properties`:
+
+```properties
+# Server Configuration
+server.port=8080
+
+# Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/carddemo
 spring.datasource.username=your_username
 spring.datasource.password=your_password
 
 # JPA Configuration
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=true
 
 # Flyway Configuration
-spring.flyway.locations=classpath:db/migration
+spring.flyway.enabled=true
 spring.flyway.baseline-on-migrate=true
+
+# Logging Configuration
+logging.level.com.example.demo=INFO
+logging.level.org.springframework.web=INFO
+logging.level.org.hibernate.SQL=DEBUG
 ```
 
-### Development vs Production
-- **Development**: Use `spring.jpa.show-sql=true` for SQL logging
-- **Production**: Set `spring.jpa.show-sql=false` and configure proper logging levels
+## Performance Considerations
 
-## 📚 Best Practices
+### Database Indexes
+The following indexes are created for optimal query performance:
+- `idx_accounts_acct_group_id` on `acct_group_id`
+- `idx_accounts_acct_active_status` on `acct_active_status`
+- `idx_accounts_acct_open_date` on `acct_open_date`
+- `idx_accounts_acct_expiration_date` on `acct_expiration_date`
 
-### Code Organization
-- ✅ Follow package-by-layer structure
-- ✅ Use consistent naming conventions
-- ✅ Implement proper exception handling
-- ✅ Add comprehensive logging
-- ✅ Write meaningful tests
+### Pagination
+All list endpoints support pagination with default page size of 20. Adjust as needed:
+```
+GET /api/accounts?page=0&size=50
+```
 
-### Database
-- ✅ Always use migrations for schema changes
-- ✅ Add appropriate indexes for performance
-- ✅ Use proper constraints and validations
-- ✅ Document complex queries
+### Transaction Management
+- Read operations use `@Transactional(readOnly = true)` for optimization
+- Write operations use `@Transactional` for data consistency
 
-### API Design
-- ✅ Use proper HTTP status codes
-- ✅ Implement pagination for collections
-- ✅ Validate input data
-- ✅ Return consistent response formats
-- ✅ Handle errors gracefully
+## Security Considerations
 
-### Security
-- ✅ Never expose entities directly in APIs
-- ✅ Use DTOs for data transfer
-- ✅ Validate all inputs
-- ✅ Implement proper authentication/authorization
-- ✅ Log security events
+### Input Validation
+- All request DTOs use Jakarta Bean Validation
+- Custom validation for account ID format
+- Business rule validation in service layer
 
-## 🤝 Contributing
+### SQL Injection Prevention
+- JPA/Hibernate parameterized queries
+- No dynamic SQL construction
 
-1. Follow the established architecture patterns
-2. Add tests for new features
-3. Update documentation
-4. Follow the coding standards
-5. Create meaningful commit messages
+### Data Integrity
+- Database constraints (primary keys, not null, unique)
+- Transaction management for consistency
+- Optimistic locking with @Version (if needed)
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue:** Application fails to start
+- **Solution:** Check database connection settings in application.properties
+
+**Issue:** Flyway migration fails
+- **Solution:** Ensure database is empty or run `mvn flyway:clean` first
+
+**Issue:** Validation errors on account creation
+- **Solution:** Verify account ID is exactly 11 digits and all required fields are provided
+
+**Issue:** Transaction rejected
+- **Solution:** Check account status is 'A', not expired, and has sufficient credit
+
+## Development Guidelines
+
+### Code Style
+- Follow Spring Boot best practices
+- Use Lombok to reduce boilerplate
+- Maintain separation of concerns (layered architecture)
+- Write comprehensive JavaDoc comments
+
+### Adding New Features
+1. Define entity/update existing entity
+2. Create/update DTOs
+3. Add repository methods
+4. Implement service logic
+5. Create controller endpoints
+6. Write tests
+7. Update documentation
+
+### Database Changes
+1. Create new Flyway migration script
+2. Follow naming convention: `V{number}__{description}.sql`
+3. Test migration on clean database
+4. Update entity if needed
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Write/update tests
+5. Update documentation
+6. Submit a pull request
+
+## License
+
+[Specify your license here]
+
+## Support
+
+For issues, questions, or contributions, please contact:
+- Email: [your-email]
+- Issue Tracker: [your-issue-tracker-url]
+
+## Changelog
+
+### Version 1.0.0 (2024)
+- Initial release
+- Complete Account Management module
+- CRUD operations
+- Sequential processing
+- Credit/debit transactions
+- Comprehensive validation
+- Full API documentation
 
 ---
 
-## 📄 Additional Documentation
-
-- [Detailed Architecture Guide](ARCHETYPE.md)
-- [Quick Start Guide](QUICKSTART.md)
-- [API Documentation](http://localhost:8080/actuator/mappings) (when running)
-
-This archetype provides everything you need to build robust, scalable Spring Boot applications. Happy coding! 🚀
+**Built with ❤️ using Spring Boot 3.5.5 and Java 21**
