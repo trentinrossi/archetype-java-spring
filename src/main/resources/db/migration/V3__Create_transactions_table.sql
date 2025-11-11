@@ -52,7 +52,3 @@ CREATE INDEX idx_transactions_type_cat ON transactions(tran_type_cd, tran_cat_cd
 CREATE INDEX idx_transactions_orig_ts ON transactions(tran_orig_ts);
 CREATE INDEX idx_transactions_proc_ts ON transactions(tran_proc_ts);
 CREATE INDEX idx_transactions_merchant_id ON transactions(tran_merchant_id);
-
--- Create index for bill payment transactions specifically
-CREATE INDEX idx_transactions_bill_payment ON transactions(tran_type_cd, tran_cat_cd) 
-WHERE tran_type_cd = '02' AND tran_cat_cd = 2;
