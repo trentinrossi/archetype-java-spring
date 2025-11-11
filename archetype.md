@@ -373,29 +373,29 @@ public enum UserStatus {
 
 ### Creating a New Feature
 
-#### 1. Entity First (`/entity`)
+#### 1. Entity First (`/com/example/demo/entity`)
 
 Define the JPA entity with necessary fields and annotations, following naming conventions and examples provided above.
 
-#### 2. DTOs (`/dto`)
+#### 2. DTOs (`/com/example/demo/dto`)
 
 Define Request and Response DTOs for the entity, ensuring proper validation annotations and documentation. Also make sure to create each DTO class into separate class files, do not combine multiple DTOs into a single file.
 
-#### 3. Repository (`/repository`)
+#### 3. Repository (`/com/example/demo/repository`)
 
 Create a JPA repository interface for the entity, including custom query methods as needed.
 
-#### 4. Service (`/service`)
+#### 4. Service (`/com/example/demo/service`)
 
 Implement the business logic for the entity, using the repository for data access.
 
-#### 5. Controller (`/controller`)
+#### 5. Controller (`/com/example/demo/controller`)
 
 Define the REST API endpoints for the entity, using the service for business logic.
 
 #### 6. Database Migration (`/resources/db/migration`)
 
-Create a Flyway migration script:
+Create a Flyway migration script to support H2 syntax
 
 **Example Structure:**
 
