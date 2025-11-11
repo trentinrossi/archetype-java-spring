@@ -10,11 +10,11 @@ CREATE TABLE credit_cards (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (card_number),
     CONSTRAINT fk_credit_cards_account FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE CASCADE,
-    CONSTRAINT chk_card_number_format CHECK (card_number ~ '^[0-9]{16}$'),
-    CONSTRAINT chk_card_number_not_zeros CHECK (card_number !~ '^0+$'),
-    CONSTRAINT chk_account_id_format CHECK (account_id ~ '^[0-9]{11}$'),
-    CONSTRAINT chk_account_id_not_zeros CHECK (account_id !~ '^0+$'),
-    CONSTRAINT chk_card_status CHECK (card_status IN ('A', 'I', 'B', 'P', 'C', 'S', 'E', 'L', 'T', 'D'))
+    CONSTRAINT chk_credit_cards_card_number_format CHECK (card_number ~ '^[0-9]{16}$'),
+    CONSTRAINT chk_credit_cards_card_number_not_zeros CHECK (card_number !~ '^0+$'),
+    CONSTRAINT chk_credit_cards_account_id_format CHECK (account_id ~ '^[0-9]{11}$'),
+    CONSTRAINT chk_credit_cards_account_id_not_zeros CHECK (account_id !~ '^0+$'),
+    CONSTRAINT chk_credit_cards_card_status CHECK (card_status IN ('A', 'I', 'B', 'P', 'C', 'S', 'E', 'L', 'T', 'D'))
 );
 
 -- Indexes for performance
