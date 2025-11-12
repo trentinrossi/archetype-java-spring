@@ -1,0 +1,48 @@
+package com.example.demo.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "user_selections")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserSelection {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "selection_flag", length = 1)
+    private String selectionFlag;
+
+    @Column(name = "selected_user_id", length = 8)
+    private String selectedUserId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "selected_user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
+    private User user;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    @PreUpdate
+    public void validateUserSelection() {
+        if (selectionFlag != null && !selectionFlag.equals("U") && !selectionFlag.equals("D")) {
+            throw new IllegalArgumentException("Selection flag must be U for update or D for delete");
+        }
+    }
+}
