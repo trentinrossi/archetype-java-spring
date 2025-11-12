@@ -1,301 +1,399 @@
-# Spring Boot Application Archetype
+# Card Demo Application
 
-A comprehensive Spring Boot 3.5.5 archetype with Java 21, PostgreSQL, JPA, Flyway migrations, and clean architecture patterns.
+A production-ready Spring Boot application for managing credit card accounts, transactions, and customer information.
 
-## 📋 Table of Contents
+## Overview
 
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Architecture Guide](#architecture-guide)
-- [Development Guidelines](#development-guidelines)
-- [API Examples](#api-examples)
-- [Database Migrations](#database-migrations)
-- [Configuration](#configuration)
-- [Best Practices](#best-practices)
-- [Contributing](#contributing)
+This application implements a comprehensive card management system with complete business rules for account processing, transaction management, interest calculation, and customer administration. It follows clean architecture principles with a layered design pattern.
 
-## 🚀 Overview
+## Technology Stack
 
-This archetype provides a ready-to-use Spring Boot application structure that follows industry best practices and clean architecture principles. It's designed to help developers quickly set up new projects with a solid foundation.
+- **Java**: 21
+- **Spring Boot**: 3.5.5
+- **Database**: PostgreSQL
+- **ORM**: JPA/Hibernate
+- **Migration**: Flyway
+- **Build Tool**: Maven 3.6+
+- **API Documentation**: OpenAPI/Swagger
+- **Utilities**: Lombok
 
-## ✨ Features
-
-- **Spring Boot 3.5.5** with Java 21
-- **PostgreSQL** database with JPA/Hibernate
-- **Flyway** database migrations
-- **Lombok** for reducing boilerplate code
-- **Spring Boot Actuator** for monitoring
-- **Layered Architecture** (Controller → Service → Repository → Entity)
-- **DTO Pattern** for API contracts
-- **Comprehensive Examples** for each layer
-- **Production-Ready Configuration**
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
 ├── main/
 │   ├── java/com/example/demo/
 │   │   ├── DemoApplication.java          # Main application class
-│   │   ├── controller/                   # REST Controllers
-│   │   │   └── UserController.java       # Example controller
-│   │   ├── dto/                         # Data Transfer Objects
-│   │   │   ├── CreateUserRequest.java    # Request DTO
-│   │   │   ├── UpdateUserRequest.java    # Update DTO
-│   │   │   └── UserResponse.java         # Response DTO
-│   │   ├── entity/                      # JPA Entities
-│   │   │   ├── User.java                # Example entity
-│   │   │   └── Order.java               # Related entity example
-│   │   ├── enums/                       # Enum definitions
-│   │   │   ├── UserStatus.java          # User status enum
-│   │   │   └── OrderStatus.java         # Order status enum
-│   │   ├── repository/                  # Data Access Layer
-│   │   │   └── UserRepository.java      # Example repository
-│   │   └── service/                     # Business Logic Layer
-│   │       └── UserService.java        # Example service
+│   │   ├── controller/                   # REST API endpoints
+│   │   │   └── AccountController.java
+│   │   ├── dto/                          # Data Transfer Objects
+│   │   │   ├── CreateAccountRequestDto.java
+│   │   │   ├── UpdateAccountRequestDto.java
+│   │   │   └── AccountResponseDto.java
+│   │   ├── entity/                       # JPA Entities (32 entities)
+│   │   │   ├── Account.java
+│   │   │   ├── Card.java
+│   │   │   ├── Customer.java
+│   │   │   ├── Transaction.java
+│   │   │   └── ... (28 more entities)
+│   │   ├── repository/                   # Data Access Layer
+│   │   │   └── AccountRepository.java
+│   │   └── service/                      # Business Logic Layer
+│   │       └── AccountService.java
 │   └── resources/
-│       ├── application.properties       # Application configuration
-│       └── db/migration/               # Flyway migrations
-│           ├── V1__Create_users_table.sql
-│           ├── V2__Add_user_search_indexes.sql
-│           └── V3__Create_orders_table.sql
-└── test/                               # Test classes
+│       ├── application.properties        # Application configuration
+│       └── db/migration/                 # Flyway migrations
+│           └── V1__Create_accounts_table.sql
+└── test/                                 # Test classes
 ```
 
-## 🏁 Getting Started
+## Features
 
-### Quick Start
-1. **Clone or use this archetype**
-2. **Configure your database** in `application.properties`
-3. **Run the application**: `./mvnw spring-boot:run`
-4. **Test the API**: `curl http://localhost:8080/api/users`
+### Core Functionality
 
-For detailed setup instructions, see [QUICKSTART.md](QUICKSTART.md).
+- **Account Management**: Complete CRUD operations for customer accounts
+- **Card Management**: Credit card lifecycle management
+- **Transaction Processing**: Transaction recording and validation
+- **Customer Management**: Customer information and profile management
+- **Interest Calculation**: Automated interest calculation with configurable rates
+- **Cross-Reference Management**: Card-to-account and account-to-customer linking
+- **Statement Generation**: Account statement creation
+- **Reporting**: Transaction reports with date range filtering
+- **User Management**: User authentication and authorization
+- **Admin Functions**: Administrative operations and menu management
 
-## 🏗️ Architecture Guide
+### Business Rules Implementation
 
-This application follows a **layered architecture** pattern:
+The application implements 17+ business rules including:
 
-### 1. **Controller Layer** (`/controller`)
-- Handles HTTP requests and responses
-- Validates input data
-- Maps DTOs to/from service layer
-- Returns appropriate HTTP status codes
+- Sequential account record processing (BR-001)
+- Account data display requirements (BR-002)
+- File access control (BR-003)
+- End-of-file detection (BR-004)
+- Account processing sequence (BR-005)
+- Zero interest rate handling (BR-006)
+- Default interest rate fallback (BR-007)
+- Transaction ID generation (BR-008)
+- Cycle amount reset (BR-009)
+- Account and card cross-reference (BR-010)
+- Date parameter reading (BR-011)
+- Page state maintenance (BR-012)
+- Card information updates (BR-013)
+- Forward/backward pagination (BR-014, BR-015)
+- Input error protection (BR-017)
 
-### 2. **Service Layer** (`/service`)
-- Contains business logic
-- Orchestrates operations between repositories
-- Handles transactions
-- Performs data transformations
+## Getting Started
 
-### 3. **Repository Layer** (`/repository`)
-- Data access abstraction
-- Database operations through JPA
-- Custom queries when needed
+### Prerequisites
 
-### 4. **Entity Layer** (`/entity`)
-- JPA entity definitions
-- Database table mappings
-- Relationships between entities
+- Java 21 or higher
+- Maven 3.6 or higher
+- PostgreSQL database
+- Git
 
-### 5. **DTO Layer** (`/dto`)
-- API contracts (Request/Response objects)
-- Input validation
-- Data transfer between layers
+### Installation
 
-### 6. **Enums** (`/enums`)
-- Type-safe constants
-- Business domain values
-- Status definitions
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd <project-directory>
+   ```
 
-For detailed architecture information, see [ARCHETYPE.md](ARCHETYPE.md).
+2. **Configure the database**
+   
+   Update `src/main/resources/application.properties`:
+   ```properties
+   spring.datasource.url=jdbc:postgresql://localhost:5432/carddemo
+   spring.datasource.username=your_username
+   spring.datasource.password=your_password
+   ```
 
-## 🛠️ Development Guidelines
+3. **Build the project**
+   ```bash
+   mvn clean install
+   ```
 
-### Creating a New Feature
+4. **Run database migrations**
+   
+   Flyway will automatically run migrations on application startup.
 
-Follow this order when implementing new features:
+5. **Start the application**
+   ```bash
+   mvn spring-boot:run
+   ```
 
-1. **Entity** → Define your data model
-2. **Migration** → Create database schema
-3. **Repository** → Data access interface
-4. **DTOs** → API contracts
-5. **Service** → Business logic
-6. **Controller** → REST endpoints
-7. **Tests** → Comprehensive testing
+The application will start on `http://localhost:8080`
 
-### Example Implementation
+### Quick Start Example
 
-```java
-// 1. Entity
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String name;
-    
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
-}
-
-// 2. Repository
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
-}
-
-// 3. Service
-@Service
-@RequiredArgsConstructor
-public class ProductService {
-    private final ProductRepository productRepository;
-    
-    public ProductResponse createProduct(CreateProductRequest request) {
-        // Business logic here
-    }
-}
-
-// 4. Controller
-@RestController
-@RequestMapping("/api/products")
-public class ProductController {
-    private final ProductService productService;
-    
-    @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody CreateProductRequest request) {
-        // Controller logic here
-    }
-}
+**Create an Account**:
+```bash
+curl -X POST http://localhost:8080/api/accounts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "accountId": "12345678901",
+    "activeStatus": "Y",
+    "currentBalance": 1500.50,
+    "creditLimit": 5000.00,
+    "cashCreditLimit": 1000.00,
+    "openDate": "2023-01-15",
+    "expirationDate": "2026-01-15",
+    "reissueDate": "2024-01-15",
+    "currentCycleCredit": 500.00,
+    "currentCycleDebit": 300.00,
+    "groupId": "GROUP001"
+  }'
 ```
 
-## 📝 API Examples
+**Get All Accounts**:
+```bash
+curl http://localhost:8080/api/accounts?page=0&size=20
+```
 
-### User Management APIs
+**Get Account by ID**:
+```bash
+curl http://localhost:8080/api/accounts/12345678901
+```
+
+## API Documentation
+
+### Swagger UI
+
+Access the interactive API documentation at:
+```
+http://localhost:8080/swagger-ui.html
+```
+
+### OpenAPI Specification
+
+Download the OpenAPI JSON specification:
+```
+http://localhost:8080/v3/api-docs
+```
+
+### API Summary
+
+For a comprehensive list of all endpoints, see [openapi-summary.md](openapi-summary.md)
+
+## Database
+
+### Schema Management
+
+Database schema is managed using Flyway migrations located in `src/main/resources/db/migration/`.
+
+Migration files follow the naming convention: `V{version}__{description}.sql`
+
+### Running Migrations
+
+Migrations run automatically on application startup. To run manually:
+```bash
+mvn flyway:migrate
+```
+
+### Database Entities
+
+The application manages 32 entities:
+
+**Core Entities**:
+- Account, Card, Customer, Transaction, User
+
+**Reference Data**:
+- TransactionType, TransactionCategory, DisclosureGroup, Merchant
+
+**Cross-References**:
+- CardCrossReference, AccountCrossReference
+
+**Reporting**:
+- Statement, TransactionReport, ReportTotals, DateParameter
+
+**Administrative**:
+- AdminUser, AdminMenuOption, MenuOption, UserSession
+
+**Utility**:
+- PageState, PaginationContext, JobSubmission, and more
+
+## Development
+
+### Code Generation
+
+This project was generated using production-grade code generation tools that:
+- Implement ALL business rule details
+- Include complete validation logic
+- Generate full CRUD operations
+- Create comprehensive API documentation
+- Follow archetype patterns exactly
+
+### Adding New Features
+
+1. **Create Entity**: Define JPA entity in `entity/` package
+2. **Create DTOs**: Define request/response DTOs in `dto/` package
+3. **Create Repository**: Define repository interface in `repository/` package
+4. **Implement Service**: Add business logic in `service/` package
+5. **Create Controller**: Define REST endpoints in `controller/` package
+6. **Add Migration**: Create Flyway migration script
+7. **Add Tests**: Write unit and integration tests
+
+### Coding Standards
+
+- Follow Spring Boot best practices
+- Use Lombok to reduce boilerplate
+- Implement proper exception handling
+- Add comprehensive validation
+- Document APIs with OpenAPI annotations
+- Write meaningful commit messages
+
+## Testing
+
+### Running Tests
 
 ```bash
-# Create User
-POST /api/users
-{
-  "firstName": "John",
-  "lastName": "Doe", 
-  "email": "john.doe@example.com",
-  "phoneNumber": "555-1234"
-}
+# Run all tests
+mvn test
 
-# Get All Users (with pagination)
-GET /api/users?page=0&size=10&sort=createdAt,desc
+# Run specific test class
+mvn test -Dtest=AccountServiceTest
 
-# Get User by ID
-GET /api/users/1
-
-# Update User
-PUT /api/users/1
-{
-  "firstName": "Jane",
-  "phoneNumber": "555-5678"
-}
-
-# Delete User
-DELETE /api/users/1
-
-# Search Users
-GET /api/users/search?q=john
-
-# Get Recent Users
-GET /api/users/recent
+# Run with coverage
+mvn test jacoco:report
 ```
 
-## 🗃️ Database Migrations
+### Test Categories
 
-Flyway migrations follow this naming convention:
-- `V{version}__{description}.sql`
-- Example: `V1__Create_users_table.sql`
+- **Unit Tests**: Service layer business logic
+- **Integration Tests**: API endpoint testing
+- **Repository Tests**: Database operations
+- **Validation Tests**: Business rule validation
 
-### Migration Examples
+## Configuration
 
-```sql
--- V1__Create_users_table.sql
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-```
+### Application Properties
 
-## ⚙️ Configuration
+Key configuration properties in `application.properties`:
 
-### Database Configuration
 ```properties
-# PostgreSQL Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_database
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+# Server Configuration
+server.port=8080
+
+# Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/carddemo
+spring.datasource.username=postgres
+spring.datasource.password=password
 
 # JPA Configuration
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=true
 
 # Flyway Configuration
-spring.flyway.locations=classpath:db/migration
+spring.flyway.enabled=true
 spring.flyway.baseline-on-migrate=true
+
+# Logging Configuration
+logging.level.com.example.demo=INFO
+logging.level.org.springframework.web=INFO
 ```
 
-### Development vs Production
-- **Development**: Use `spring.jpa.show-sql=true` for SQL logging
-- **Production**: Set `spring.jpa.show-sql=false` and configure proper logging levels
+## Deployment
 
-## 📚 Best Practices
+### Building for Production
 
-### Code Organization
-- ✅ Follow package-by-layer structure
-- ✅ Use consistent naming conventions
-- ✅ Implement proper exception handling
-- ✅ Add comprehensive logging
-- ✅ Write meaningful tests
+```bash
+# Create executable JAR
+mvn clean package -DskipTests
 
-### Database
-- ✅ Always use migrations for schema changes
-- ✅ Add appropriate indexes for performance
-- ✅ Use proper constraints and validations
-- ✅ Document complex queries
+# Run the JAR
+java -jar target/demo-0.0.1-SNAPSHOT.jar
+```
 
-### API Design
-- ✅ Use proper HTTP status codes
-- ✅ Implement pagination for collections
-- ✅ Validate input data
-- ✅ Return consistent response formats
-- ✅ Handle errors gracefully
+### Docker Deployment
 
-### Security
-- ✅ Never expose entities directly in APIs
-- ✅ Use DTOs for data transfer
-- ✅ Validate all inputs
-- ✅ Implement proper authentication/authorization
-- ✅ Log security events
+```dockerfile
+FROM openjdk:21-jdk-slim
+COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]
+```
 
-## 🤝 Contributing
+Build and run:
+```bash
+docker build -t carddemo .
+docker run -p 8080:8080 carddemo
+```
 
-1. Follow the established architecture patterns
-2. Add tests for new features
-3. Update documentation
-4. Follow the coding standards
-5. Create meaningful commit messages
+## Monitoring
+
+### Actuator Endpoints
+
+Spring Boot Actuator provides monitoring endpoints:
+
+- Health: `http://localhost:8080/actuator/health`
+- Info: `http://localhost:8080/actuator/info`
+- Metrics: `http://localhost:8080/actuator/metrics`
+
+## Security
+
+### Authentication
+
+- User authentication required for all operations
+- Admin operations restricted to admin users
+- Sensitive data (SSN, CVV) masked in responses
+
+### Best Practices
+
+- Never commit sensitive credentials
+- Use environment variables for configuration
+- Implement proper access control
+- Validate all input data
+- Log security events
+
+## Troubleshooting
+
+### Common Issues
+
+**Database Connection Error**:
+- Verify PostgreSQL is running
+- Check database credentials
+- Ensure database exists
+
+**Migration Failures**:
+- Check migration file syntax
+- Verify migration order
+- Review Flyway logs
+
+**Build Failures**:
+- Ensure Java 21 is installed
+- Clear Maven cache: `mvn clean`
+- Update dependencies: `mvn clean install -U`
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For issues and questions:
+- Review the [API Summary](openapi-summary.md)
+- Check the [Archetype Guide](archetype.md)
+- Review business rules documentation
+- Open an issue on GitHub
+
+## Acknowledgments
+
+- Spring Boot team for the excellent framework
+- PostgreSQL community
+- All contributors to this project
 
 ---
 
-## 📄 Additional Documentation
-
-- [Detailed Architecture Guide](ARCHETYPE.md)
-- [Quick Start Guide](QUICKSTART.md)
-- [API Documentation](http://localhost:8080/actuator/mappings) (when running)
-
-This archetype provides everything you need to build robust, scalable Spring Boot applications. Happy coding! 🚀
+**Version**: 1.0.0  
+**Last Updated**: 2024  
+**Application**: Card Demo (CBACT01C)  
+**Framework**: Spring Boot 3.5.5  
+**Java**: 21
