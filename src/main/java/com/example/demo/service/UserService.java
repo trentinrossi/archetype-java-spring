@@ -1,5 +1,12 @@
 package com.example.demo.service;
 
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.demo.dto.CreateUserRequestDto;
 import com.example.demo.dto.LoginRequestDto;
 import com.example.demo.dto.LoginResponseDto;
@@ -7,15 +14,9 @@ import com.example.demo.dto.UpdateUserRequestDto;
 import com.example.demo.dto.UserResponseDto;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -163,7 +164,7 @@ public class UserService {
         log.info("User authenticated successfully: {}", request.getUserId());
         
         UserResponseDto userResponse = convertToResponse(authenticatedUser);
-        return new LoginResponseDto(true, "Login successful", userResponse);
+        return new LoginResponseDto(true, "Login successful", userResponse, "fake-session-token-123");
     }
 
     @Transactional(readOnly = true)
